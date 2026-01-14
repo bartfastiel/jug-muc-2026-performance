@@ -1,3 +1,7 @@
+import static java.lang.IO.println;
+import static java.lang.String.format;
+import static java.time.Month.JANUARY;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Arrays.stream;
 import static java.util.stream.Stream.concat;
 
@@ -11,10 +15,12 @@ static final String[] LAST_NAMES = {
         "Muster", "Meier", "Schmidt", "Schneider-Ulrich", "Fischer", "Weber"
 };
 
+static final String BIRTH_DATE_HEADER = "Birth date";
+
 static final int NUMBER_OF_PERSONS = 100_000_000;
 
 void main() throws IOException {
-    System.out.println("Personal Data Generator");
+    println("Personal Data Generator");
     var outputFileName = "personal-data_" + NUMBER_OF_PERSONS + ".zip";
     var outputPath = Path.of(outputFileName);
 
@@ -28,32 +34,40 @@ void main() throws IOException {
             .max()
             .orElseThrow();
 
+    var maxLengthBirthDate = Math.max(BIRTH_DATE_HEADER.length(), "YYYY-MM-DD".length());
+
+    var onePercent = NUMBER_OF_PERSONS / 100;
+    var earliestBirthDate = LocalDate.of(1930, JANUARY, 1);
+    var maxDays = DAYS.between(earliestBirthDate, LocalDate.now());
+    var dateTimeFormatter = new DateTimeFormatterBuilder()
+            .appendPattern("yyyy-MM-dd")
+            .toFormatter();
+
     try (
             var zipOutputStream = new ZipOutputStream(Files.newOutputStream(outputPath));
-            var out = new OutputStreamWriter(zipOutputStream);
-            var writer = new BufferedWriter(out);
+            var streamWriter = new OutputStreamWriter(zipOutputStream);
+            var output = new BufferedWriter(streamWriter);
     ) {
         zipOutputStream.putNextEntry(new ZipEntry("personal-data.csv"));
-        writer.write(String.format("%-" + maxLengthFirstName + "s;" +
-                        "%-" + maxLengthLastName + "s;" +
-                        "\n",
+        var formatString = "%-" + maxLengthFirstName + "s;" +
+                "%-" + maxLengthLastName + "s;" +
+                "%-" + maxLengthBirthDate + "s;" +
+                "\n";
+        output.write(format(formatString,
                 FIRST_NAME_HEADER,
-                LAST_NAME_HEADER
+                LAST_NAME_HEADER,
+                BIRTH_DATE_HEADER
         ));
         var random = new Random();
-        var onePercent = NUMBER_OF_PERSONS / 100;
         for (int i = 0; i < NUMBER_OF_PERSONS; i++) {
-            var firstName = FIRST_NAMES[random.nextInt(FIRST_NAMES.length)];
-            var lastName = LAST_NAMES[random.nextInt(LAST_NAMES.length)];
-            writer.write(String.format("%-" + maxLengthFirstName + "s;" +
-                            "%-" + maxLengthLastName + "s;" +
-                            "\n",
-                    firstName,
-                    lastName
-            ));
+            output.write(format(formatString,
+                    FIRST_NAMES[random.nextInt(FIRST_NAMES.length)],
+                    LAST_NAMES[random.nextInt(LAST_NAMES.length)],
+                    earliestBirthDate.plusDays(random.nextLong(maxDays + 1)).format(dateTimeFormatter)
+                    ));
 
             if (i % onePercent == 0) {
-                IO.println("Generated " + (i / onePercent) + "% of data...");
+                println("Generated " + (i / onePercent) + "% of data...");
             }
         }
     }

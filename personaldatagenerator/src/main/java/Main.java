@@ -11,9 +11,11 @@ static final String[] LAST_NAMES = {
         "Muster", "Meier", "Schmidt", "Schneider-Ulrich", "Fischer", "Weber"
 };
 
+static final int NUMBER_OF_PERSONS = 100_000_000;
+
 void main() throws IOException {
     System.out.println("Personal Data Generator");
-    var outputFileName = "personal-data.zip";
+    var outputFileName = "personal-data_" + NUMBER_OF_PERSONS + ".zip";
     var outputPath = Path.of(outputFileName);
 
     var maxLengthFirstName = concat(stream(FIRST_NAMES), Stream.of(FIRST_NAME_HEADER))
@@ -39,7 +41,8 @@ void main() throws IOException {
                 LAST_NAME_HEADER
         ));
         var random = new Random();
-        for (int i = 0; i < 100; i++) {
+        var onePercent = NUMBER_OF_PERSONS / 100;
+        for (int i = 0; i < NUMBER_OF_PERSONS; i++) {
             var firstName = FIRST_NAMES[random.nextInt(FIRST_NAMES.length)];
             var lastName = LAST_NAMES[random.nextInt(LAST_NAMES.length)];
             writer.write(String.format("%-" + maxLengthFirstName + "s;" +
@@ -48,6 +51,10 @@ void main() throws IOException {
                     firstName,
                     lastName
             ));
+
+            if (i % onePercent == 0) {
+                IO.println("Generated " + (i / onePercent) + "% of data...");
+            }
         }
     }
 }

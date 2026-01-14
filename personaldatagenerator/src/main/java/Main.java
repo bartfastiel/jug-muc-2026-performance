@@ -3,6 +3,10 @@ static final String[] FIRST_NAMES = {
         "Max", "Moritz", "Susi", "Lieschen", "Hans", "Greta"
 };
 
+static final String[] LAST_NAMES = {
+        "Muster", "Meier", "Schmidt", "Schneider", "Fischer", "Weber"
+};
+
 void main() throws IOException {
     System.out.println("Personal Data Generator");
     var outputFileName = "personal-data.zip";
@@ -17,7 +21,7 @@ void main() throws IOException {
         var random = new Random();
         for (int i = 0; i < 100; i++) {
             var firstName = FIRST_NAMES[random.nextInt(FIRST_NAMES.length)];
-            var lastName = "LastName" + (i + 1);
+            var lastName = LAST_NAMES[random.nextInt(LAST_NAMES.length)];
             writer.write(firstName + ";" + lastName + ";\n");
         }
     }

@@ -1,0 +1,92 @@
+package solution.bravo;
+
+import com.opencsv.bean.CsvBindByPosition;
+import com.opencsv.bean.CsvDate;
+import com.opencsv.bean.CsvToBeanBuilder;
+
+import java.io.*;
+import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.MonthDay;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.zip.ZipInputStream;
+
+import static java.lang.IO.println;
+import static java.nio.file.Files.createTempFile;
+import static java.nio.file.Files.newInputStream;
+import static java.util.Comparator.comparingLong;
+
+public class Main {
+
+    private static final String INPUT_FILE = "personal-data.zip";
+
+    public static void main() throws IOException {
+        var csvFile = extractZipFile();
+        var persons = parse(csvFile);
+        var birthdays = countPartiesForEachDay(persons);
+        var mostCommonBirthday = birthdays.entrySet().stream()
+                .max(comparingLong(Map.Entry::getValue))
+                .orElseThrow(() -> new IllegalStateException("No birthdays found"));
+        println("Most common birthday is " + mostCommonBirthday.getKey() +
+                " with " + mostCommonBirthday.getValue() +
+                " persons celebrating it.");
+    }
+
+    private static Path extractZipFile() throws IOException {
+        try (var input = new ZipInputStream(newInputStream(Path.of(INPUT_FILE)))) {
+            var entry = input.getNextEntry();
+            if (entry == null) {
+                throw new IOException("No entries found in zip file " + "personal-data.zip");
+            }
+            var outputFile = createTempFile("extracted-personal-data", ".csv");
+            try (var fileOutputStream = new FileOutputStream(outputFile.toFile());
+                 var output = new BufferedOutputStream(fileOutputStream)) {
+                var nextByte = input.read();
+                while (nextByte != -1) {
+                    output.write(nextByte);
+                    nextByte = input.read();
+                }
+            }
+            return outputFile;
+        }
+    }
+
+    public static class Person {
+
+        @CsvBindByPosition(position = 0)
+        public String firstName;
+
+        @CsvBindByPosition(position = 1)
+        public String lastName;
+
+        @CsvBindByPosition(position = 2)
+        @CsvDate(value = "yyyy-MM-dd")
+        public LocalDate birthDate;
+    }
+
+    private static Collection<Person> parse(Path csvFile) throws IOException {
+        var persons = new LinkedList<Person>();
+        try (var reader = new BufferedReader(new FileReader(csvFile.toFile()))) {
+            new CsvToBeanBuilder<Person>(reader)
+                    .withType(Person.class)
+                    .withSeparator(';')
+                    .withSkipLines(1)
+                    .build()
+                    .forEach(persons::add);
+        }
+        println("Extracted " + persons.size() + " persons:");
+        return persons;
+    }
+
+    private static Map<MonthDay, Long> countPartiesForEachDay(Collection<Person> persons) {
+        var birthdays = new HashMap<MonthDay, Long>();
+        for (var person : persons) {
+            var monthDay = MonthDay.from(person.birthDate);
+            birthdays.put(monthDay, birthdays.getOrDefault(monthDay, 0L) + 1);
+        }
+        return birthdays;
+    }
+}

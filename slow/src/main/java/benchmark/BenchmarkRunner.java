@@ -7,7 +7,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 public class BenchmarkRunner {
 
     static void main() throws Exception {
-        var n = 10_000;
+        var n = 100_000_000;
         PersonalDataGenerator.generate(n);
         new Runner(
                 new OptionsBuilder()

@@ -1,16 +1,15 @@
-package solution_b;
+package solution.foxtrott;
 
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvDate;
-import com.opencsv.bean.CsvToBeanBuilder;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.MonthDay;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.zip.ZipInputStream;
 
@@ -19,7 +18,7 @@ import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.newInputStream;
 import static java.util.Comparator.comparingLong;
 
-public class SolutionBHistogram {
+public class Main {
 
     private static final String INPUT_FILE = "personal-data.zip";
 
@@ -42,12 +41,13 @@ public class SolutionBHistogram {
                 throw new IOException("No entries found in zip file " + "personal-data.zip");
             }
             var outputFile = createTempFile("extracted-personal-data", ".csv");
+            var buffer = new byte[8192];
             try (var fileOutputStream = new FileOutputStream(outputFile.toFile());
                  var output = new BufferedOutputStream(fileOutputStream)) {
-                var nextByte = input.read();
-                while (nextByte != -1) {
-                    output.write(nextByte);
-                    nextByte = input.read();
+                var bytesRead = input.read(buffer);
+                while (bytesRead != -1) {
+                    output.write(buffer, 0, bytesRead);
+                    bytesRead = input.read(buffer);
                 }
             }
             return outputFile;
@@ -56,26 +56,21 @@ public class SolutionBHistogram {
 
     public static class Person {
 
-        @CsvBindByPosition(position = 0)
-        public String firstName;
-
-        @CsvBindByPosition(position = 1)
-        public String lastName;
-
         @CsvBindByPosition(position = 2)
         @CsvDate(value = "yyyy-MM-dd")
         public LocalDate birthDate;
     }
 
     private static Collection<Person> parse(Path csvFile) throws IOException {
-        var persons = new LinkedList<Person>();
+        var persons = new ArrayList<Person>(1_000_000);
         try (var reader = new BufferedReader(new FileReader(csvFile.toFile()))) {
-            new CsvToBeanBuilder<Person>(reader)
-                    .withType(Person.class)
-                    .withSeparator(';')
-                    .withSkipLines(1)
-                    .build()
-                    .forEach(persons::add);
+            String line = reader.readLine(); // skip header
+            while ((line = reader.readLine()) != null) {
+                var parts = line.split(";");
+                var person = new Person();
+                person.birthDate = LocalDate.parse(parts[2]);
+                persons.add(person);
+            }
         }
         println("Extracted " + persons.size() + " persons:");
         return persons;

@@ -1,4 +1,4 @@
-package solution_a_comfort;
+package solution.delta;
 
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvDate;
@@ -9,7 +9,9 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.MonthDay;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.zip.ZipInputStream;
 
 import static java.lang.IO.println;
@@ -17,16 +19,19 @@ import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.newInputStream;
 import static java.util.Comparator.comparingLong;
 
-public class SolutionAComfort {
+public class Main {
 
     private static final String INPUT_FILE = "personal-data.zip";
 
     public static void main() throws IOException {
         var csvFile = extractZipFile();
         var persons = parse(csvFile);
-        var personWithMostCommonBirthday = findPersonWithMostCommonBirthday(persons);
-        println("Most common birthday is " + MonthDay.from(personWithMostCommonBirthday.birthDate) +
-                " with " + numberOfPersonsThatCelebrate(persons, MonthDay.from(personWithMostCommonBirthday.birthDate)) +
+        var birthdays = countPartiesForEachDay(persons);
+        var mostCommonBirthday = birthdays.entrySet().stream()
+                .max(comparingLong(Map.Entry::getValue))
+                .orElseThrow(() -> new IllegalStateException("No birthdays found"));
+        println("Most common birthday is " + mostCommonBirthday.getKey() +
+                " with " + mostCommonBirthday.getValue() +
                 " persons celebrating it.");
     }
 
@@ -37,12 +42,13 @@ public class SolutionAComfort {
                 throw new IOException("No entries found in zip file " + "personal-data.zip");
             }
             var outputFile = createTempFile("extracted-personal-data", ".csv");
+            var buffer = new byte[8192];
             try (var fileOutputStream = new FileOutputStream(outputFile.toFile());
                  var output = new BufferedOutputStream(fileOutputStream)) {
-                var nextByte = input.read();
-                while (nextByte != -1) {
-                    output.write(nextByte);
-                    nextByte = input.read();
+                var bytesRead = input.read(buffer);
+                while (bytesRead != -1) {
+                    output.write(buffer, 0, bytesRead);
+                    bytesRead = input.read(buffer);
                 }
             }
             return outputFile;
@@ -50,12 +56,6 @@ public class SolutionAComfort {
     }
 
     public static class Person {
-
-        @CsvBindByPosition(position = 0)
-        public String firstName;
-
-        @CsvBindByPosition(position = 1)
-        public String lastName;
 
         @CsvBindByPosition(position = 2)
         @CsvDate(value = "yyyy-MM-dd")
@@ -76,15 +76,12 @@ public class SolutionAComfort {
         return persons;
     }
 
-    private static Person findPersonWithMostCommonBirthday(Collection<Person> persons) {
-        return persons.stream()
-                .max(comparingLong(p -> numberOfPersonsThatCelebrate(persons, MonthDay.from(p.birthDate))))
-                .orElseThrow(() -> new IllegalStateException("No persons found"));
-    }
-
-    private static long numberOfPersonsThatCelebrate(Collection<Person> persons, MonthDay birthday) {
-        return persons.stream()
-                .filter(other -> MonthDay.from(other.birthDate).equals(birthday))
-                .count();
+    private static Map<MonthDay, Long> countPartiesForEachDay(Collection<Person> persons) {
+        var birthdays = new HashMap<MonthDay, Long>();
+        for (var person : persons) {
+            var monthDay = MonthDay.from(person.birthDate);
+            birthdays.put(monthDay, birthdays.getOrDefault(monthDay, 0L) + 1);
+        }
+        return birthdays;
     }
 }

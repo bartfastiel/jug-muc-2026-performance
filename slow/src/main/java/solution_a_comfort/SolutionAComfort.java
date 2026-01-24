@@ -1,4 +1,4 @@
-package slow;
+package solution_a_comfort;
 
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvDate;
@@ -17,7 +17,7 @@ import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.newInputStream;
 import static java.util.Comparator.comparingLong;
 
-public class Slow {
+public class SolutionAComfort {
 
     private static final String INPUT_FILE = "personal-data.zip";
 

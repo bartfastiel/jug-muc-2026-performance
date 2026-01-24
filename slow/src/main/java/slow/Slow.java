@@ -14,7 +14,7 @@ import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.newInputStream;
 import static java.util.Comparator.comparingLong;
 
-public class Main {
+public class Slow {
     public static void run(int numberOfPersons) throws IOException {
         var csvFile = extractZipFile("personal-data.zip");
         var persons = parse(csvFile);

@@ -1,5 +1,6 @@
-package slow;
+package benchmark;
 
+import generator.PersonalDataGenerator;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
@@ -40,7 +41,7 @@ public class BenchmarkRunner {
                 Path tmp = Files.createTempFile("jmh-", ".csv");
 
                 Options opt = new OptionsBuilder()
-                        .include(".*BirthdayBenchmark.*")
+                        .include(BirthdayBenchmark.class.getName().replace(".", "\\."))
                         .param("numberOfPersons", String.valueOf(n))
                         .forks(1)
                         .warmupIterations(0)

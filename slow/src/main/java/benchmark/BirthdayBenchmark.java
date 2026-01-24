@@ -1,6 +1,7 @@
-package slow;
+package benchmark;
 
 import org.openjdk.jmh.annotations.*;
+import slow.Slow;
 
 import java.util.concurrent.TimeUnit;
 
@@ -18,6 +19,6 @@ public class BirthdayBenchmark {
 
     @Benchmark
     public void runMainProgram() throws Exception {
-        Main.run(numberOfPersons);
+        Slow.run(numberOfPersons);
     }
 }

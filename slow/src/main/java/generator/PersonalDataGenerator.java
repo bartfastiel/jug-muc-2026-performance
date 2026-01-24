@@ -1,4 +1,4 @@
-package slow;
+package generator;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

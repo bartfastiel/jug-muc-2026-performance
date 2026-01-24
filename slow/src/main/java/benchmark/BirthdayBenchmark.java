@@ -19,6 +19,6 @@ public class BirthdayBenchmark {
 
     @Benchmark
     public void runMainProgram() throws Exception {
-        Slow.run(numberOfPersons);
+        Slow.main();
     }
 }

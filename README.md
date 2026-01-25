@@ -11,3 +11,11 @@ Comma-separated text file with fixed width columns. Lines separated by `\n`. Col
 No escaping nor quoting allowed. Dates are in 'YYYY-MM-DD' format. First line is a header.
 
 The input textfile is zipped.
+
+example:
+```
+First name;Last name       ;Birth date;
+Hans      ;Fischer         ;1964-03-12;
+Susi      ;Fischer         ;1959-08-06;
+Hans      ;Schmidt         ;1985-09-13;
+```

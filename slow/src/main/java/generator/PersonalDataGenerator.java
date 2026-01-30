@@ -41,9 +41,19 @@ public class PersonalDataGenerator {
     }
 
     public static void generate(int numberOfPersons) throws IOException {
+        var random = new Random();
+        var birthdaysAsDaysSince1Jan1930 = stream(new int[numberOfPersons])
+                .map(i -> {
+                    var earliestBirthDate = LocalDate.of(1930, JANUARY, 1);
+                    var maxDays = DAYS.between(earliestBirthDate, LocalDate.now());
+                    return (int) random.nextLong(maxDays + 1);
+                })
+                .toArray();
+        generate(birthdaysAsDaysSince1Jan1930, Path.of("personal-data.zip"));
+    }
+
+    public static void generate(int[] birthdaysAsDaysSince1Jan1930, Path outputPath) throws IOException {
         println("Personal Data Generator");
-        var outputFileName = "personal-data.zip";
-        var outputPath = Path.of(outputFileName);
 
         var maxLengthFirstName = concat(stream(FIRST_NAMES), Stream.of(FIRST_NAME_HEADER))
                 .mapToInt(String::length)
@@ -57,7 +67,7 @@ public class PersonalDataGenerator {
 
         var maxLengthBirthDate = Math.max(BIRTH_DATE_HEADER.length(), "YYYY-MM-DD".length());
 
-        var onePercent = numberOfPersons / 100;
+        var onePercent = birthdaysAsDaysSince1Jan1930.length / 100;
         var earliestBirthDate = LocalDate.of(1930, JANUARY, 1);
         var maxDays = DAYS.between(earliestBirthDate, LocalDate.now());
         var dateTimeFormatter = new DateTimeFormatterBuilder()
@@ -80,11 +90,11 @@ public class PersonalDataGenerator {
                     BIRTH_DATE_HEADER
             ));
             var random = new Random();
-            for (int i = 0; i < numberOfPersons; i++) {
+            for (int i = 0; i < birthdaysAsDaysSince1Jan1930.length; i++) {
                 output.write(format(formatString,
                         FIRST_NAMES[random.nextInt(FIRST_NAMES.length)],
                         LAST_NAMES[random.nextInt(LAST_NAMES.length)],
-                        earliestBirthDate.plusDays(random.nextLong(maxDays + 1)).format(dateTimeFormatter)
+                        earliestBirthDate.plusDays(birthdaysAsDaysSince1Jan1930[i]).format(dateTimeFormatter)
                 ));
 
                 if (onePercent > 0 && (i + 1) % onePercent == 0) {

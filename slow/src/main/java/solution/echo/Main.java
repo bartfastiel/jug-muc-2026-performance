@@ -24,19 +24,23 @@ public class Main {
     private static final String INPUT_FILE = "personal-data.zip";
 
     public static void main() throws IOException {
-        var csvFile = extractZipFile();
+        println(run(Path.of(INPUT_FILE)));
+    }
+
+    public static String run(Path zipFile) throws IOException {
+        var csvFile = extractZipFile(zipFile);
         var persons = parse(csvFile);
         var birthdays = countPartiesForEachDay(persons);
         var mostCommonBirthday = birthdays.entrySet().stream()
                 .max(comparingLong(Map.Entry::getValue))
                 .orElseThrow(() -> new IllegalStateException("No birthdays found"));
-        println("Most common birthday is " + mostCommonBirthday.getKey() +
+        return "Most common birthday is " + mostCommonBirthday.getKey() +
                 " with " + mostCommonBirthday.getValue() +
-                " persons celebrating it.");
+                " persons celebrating it.";
     }
 
-    private static Path extractZipFile() throws IOException {
-        try (var input = new ZipInputStream(newInputStream(Path.of(INPUT_FILE)))) {
+    private static Path extractZipFile(Path zipFile) throws IOException {
+        try (var input = new ZipInputStream(newInputStream(zipFile))) {
             var entry = input.getNextEntry();
             if (entry == null) {
                 throw new IOException("No entries found in zip file " + "personal-data.zip");

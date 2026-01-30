@@ -27,7 +27,7 @@ class MainTest {
         var tempFile = createTempFile("personal-data", ".zip");
         generate(birthdaysAsDaysSince1Jan1930, tempFile);
 
-        var result = solution.juliett.Main.run(tempFile);
+        var result = solution.kilo.Main.run(tempFile);
 
         assertEquals(expected, result);
     }

@@ -190,3 +190,55 @@
 * Wo in JavaDoc steht etwas über Performance?
 * Es geht darum die Reibung zu minimieren - also versuche nicht "Performance einzubauen", sondern "Bottlenecks zu entfernen"
 * JMH - Java Microbenchmark Harness
+* Zitat Linus Torvalds: "Some people say you should not micro optimize, but if what you love is micro optimization, that is what you should do." [Quelle](hhttps://youtube.com/shorts/Z65bQJKsnLk?si=b3IP8RDA7015u_zJ)
+* Caching
+* Tests sind wichtig: so kann man refactoren
+* Wenn Du mehr Geld für ein Auto ausgibst, ist es nicht unbedingt komfortabler (z.B. Formel-1)
+* Warum Java?
+  * Man kann schnell schreiben, die Sprache ermöglicht es (Arrays bilden Speicher-Architektur ab, usw)
+  * Aber Du musst es nicht tun (Garbage Collector, usw)
+* Clean Code vs Performance
+  * letztendlich kaufmännische Entscheidung
+    * Geld ausgeben für Entwicklerzeit
+    * Geld ausgeben für Hardware
+    * Kommt darauf an: wie viel Last hast Du, wie oft wirst Du das Programm ändern wollen?
+  * Logging kostet
+    * Logge nicht mehr als Du lesen kannst!
+  * Lasse alles "schön", was nicht Bottleneck ist!
+* Klettergurt:
+  * Komfortabel gibt es günstig
+  * Nur wenn Du das Gewicht reduzieren musst, wird es teuer (und weniger komfortabel)
+* Clean Code hat gute Prinzipien
+  * KISS
+    * Oft Auch gut für Performance (bis zu gewissem Grad, dann erfordert Performance-Optimierung oft komplexeren Code)
+  * YAGNI
+    * Lass unnötige Features weg => gut für Performance
+  * DRY
+    * Vermeide Redundanz => gut für Wartbarkeit, aber nicht immer für Performance
+* Für Performance sollten wir diese einführen:
+  * POITROAE
+    * Premature Optimization Is The Root Of All Evil
+  * YNNIYHD
+    * You never know, if you have dependencies
+  * RAFAYC
+    * Return as fast as you can
+  * SFC
+    * Serve from cache, not from source
+
+* Performance-Cycle
+  * Messen (vorher)
+  * Analysieren (Bottlenecks finden)
+  * Optimieren
+  * Messen (nachher)
+    * So viel schneller, dass es sich gelohnt hat?
+    * Gegebenfalls Rollback, andere Optimierung versuchen
+  * Noch zu langsam?
+    * Wiederhole den Zyklus
+
+* "Measure, don’t guess" – McConnell / allgemeiner Performance-Grundsatz
+* "Premature optimization is the root of all evil." – Donald Knuth
+* "Make it work, make it right, make it fast." – Kent Beck bzw Kernighan/Pike
+* End-to-End-Latency Thinking (Google SRE, Brendan Gregg)
+* Brendan Gregg – USE / RED Method https://pagertree.com/learn/devops/what-is-observability/use-and-red-method
+
+

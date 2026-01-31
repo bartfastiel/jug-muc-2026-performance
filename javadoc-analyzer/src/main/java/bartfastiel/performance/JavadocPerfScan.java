@@ -1,47 +1,118 @@
+package bartfastiel.performance;
+
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-public class JavadocPerfScan {
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.file.Files.isDirectory;
+import static java.nio.file.Files.readAllBytes;
+import static java.nio.file.Files.readString;
+import static java.nio.file.Files.walk;
 
-    // ========= CONFIG =========
+public final class JavadocPerfScan {
 
-    private static final List<byte[]> TOKENS = List.of(
-            "O(".getBytes(StandardCharsets.US_ASCII),
-            "constant time".getBytes(StandardCharsets.US_ASCII),
-            "linear time".getBytes(StandardCharsets.US_ASCII),
-            "logarithmic".getBytes(StandardCharsets.US_ASCII),
-            "amortized".getBytes(StandardCharsets.US_ASCII),
-            "complexity".getBytes(StandardCharsets.US_ASCII)
-    );
+    // =====================================================================
+    // CONFIG
+    // =====================================================================
 
     private static final String ORACLE_DOC_URL =
             "https://www.oracle.com/java/technologies/javase-jdk25-doc-downloads.html";
 
-    // ========= DATA MODEL =========
+    /**
+     * Define what you scan here: name + compiled Pattern + probes for fast pre-scan.
+     *
+     * Why probes?
+     * - We avoid decoding + regex for most files.
+     * - Probes should be small, highly selective substrings.
+     */
+    private static final List<PatternDef> PATTERNS = List.of(
+            new PatternDef(
+                    "Big-O",
+                    Pattern.compile("(?<![\\p{Alnum}_])O\\s*\\(\\s*[^)\\n]{1,80}\\)"),
+                    List.of("O("),
+                    false
+            ),
+            new PatternDef(
+                    "Constant time",
+                    Pattern.compile("(?<![\\p{Alnum}_])constant[-\\s]+time(?![\\p{Alnum}_])", Pattern.CASE_INSENSITIVE),
+                    List.of("constant"),
+                    true
+            ),
+            new PatternDef(
+                    "Linear time",
+                    Pattern.compile("(?<![\\p{Alnum}_])linear[-\\s]+time(?![\\p{Alnum}_])", Pattern.CASE_INSENSITIVE),
+                    List.of("linear"),
+                    true
+            ),
+            new PatternDef(
+                    "Logarithmic",
+                    Pattern.compile("(?<![\\p{Alnum}_])logarithmic(?![\\p{Alnum}_])", Pattern.CASE_INSENSITIVE),
+                    List.of("logarithmic"),
+                    true
+            ),
+            new PatternDef(
+                    "Amortized",
+                    Pattern.compile("(?<![\\p{Alnum}_])amortized(?![\\p{Alnum}_])", Pattern.CASE_INSENSITIVE),
+                    List.of("amortized"),
+                    true
+            ),
+            new PatternDef(
+                    "Time/Space complexity",
+                    Pattern.compile("(?<![\\p{Alnum}_])(time|space)[-\\s]+complexity(?![\\p{Alnum}_])", Pattern.CASE_INSENSITIVE),
+                    List.of("complexity", "time complexity", "space complexity"),
+                    true
+            )
+    );
 
-    public static final class AnalysisResult {
-        public final Map<String, PackageStats> packages = new TreeMap<>();
-        public int scannedFiles;
-        public int matchedFiles;
-    }
+    // =====================================================================
+    // RECORDS: MODEL
+    // =====================================================================
 
-    public static final class PackageStats {
-        public final String packageName;
-        public int hits;
-        public final Set<String> bigOs = new TreeSet<>();
-        public final Set<String> classes = new TreeSet<>();
+    public record AnalysisResult(
+            Map<String, PackageResult> packages,
+            int scannedFiles,
+            int matchedFiles
+    ) {}
 
-        PackageStats(String packageName) {
-            this.packageName = packageName;
-        }
-    }
+    public record PackageResult(
+            String name,
+            Map<String, ClassResult> classes
+    ) {}
 
-    // ========= MAIN =========
+    public record ClassResult(
+            String className,
+            List<MatchResult> matches
+    ) {}
+
+    public record MatchResult(
+            String patternName,
+            String excerpt
+    ) {}
+
+    /**
+     * PatternDef:
+     * - pattern is already compiled at call site (flags per pattern).
+     * - probes are literal snippets for a fast byte pre-scan.
+     * - probeCaseInsensitive controls ASCII-fold matching for probes.
+     */
+    public record PatternDef(
+            String name,
+            Pattern pattern,
+            List<String> probes,
+            boolean probeCaseInsensitive
+    ) {}
+
+    // =====================================================================
+    // MAIN
+    // =====================================================================
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
@@ -49,18 +120,22 @@ public class JavadocPerfScan {
             return;
         }
 
-        Path root = Paths.get(args[0]);
-        if (!Files.isDirectory(root)) {
-            System.err.println("Not a directory: " + root);
+        Path root;
+        root = Paths.get(args[0]);
+
+        if (!isDirectory(root)) {
+            err.println("Not a directory: " + root);
             return;
         }
 
-        AnalysisResult result = analyze(root);
+        AnalysisResult result;
+        result = analyze(root);
+
         printResult(result);
     }
 
     private static void printUsage() {
-        System.out.println("""
+        out.println("""
                 Usage:
                   java JavadocPerfScan <path-to-extracted-javadoc>
 
@@ -71,103 +146,213 @@ public class JavadocPerfScan {
                   """ + ORACLE_DOC_URL);
     }
 
-    // ========= CORE ANALYSIS =========
+    // =====================================================================
+    // CORE API (reuse later for Graphics2D)
+    // =====================================================================
 
-    public static AnalysisResult analyze(Path extractedRoot) throws IOException {
-        Path javaBase = findJavaBase(extractedRoot);
+    public static AnalysisResult analyze(Path extractedJavadocRoot) throws IOException {
+        Path javaBase;
+        javaBase = findJavaBase(extractedJavadocRoot);
         if (javaBase == null) {
-            throw new IllegalStateException("Could not find java.base under " + extractedRoot);
+            throw new IllegalStateException("Could not find java.base under " + extractedJavadocRoot);
         }
 
-        AnalysisResult result = new AnalysisResult();
-        AtomicInteger scanned = new AtomicInteger();
-        AtomicInteger matched = new AtomicInteger();
+        Map<String, PackageResult> packages;
+        packages = new TreeMap<>();
 
-        try (Stream<Path> files = Files.walk(javaBase)) {
+        AtomicInteger scanned;
+        scanned = new AtomicInteger(0);
+
+        AtomicInteger matchedFiles;
+        matchedFiles = new AtomicInteger(0);
+
+        try (Stream<Path> files = walk(javaBase)) {
             files
-                    .filter(p -> p.toString().endsWith(".html"))
+                    .filter(JavadocPerfScan::isRealClassDoc)
                     .parallel()
                     .forEach(file -> {
                         scanned.incrementAndGet();
                         try {
-                            if (!containsAnyToken(file)) {
+                            if (!mightContainAnything(file)) {
                                 return;
                             }
 
-                            String text = Files.readString(file);
-                            FileHit hit = extractHit(file, javaBase, text);
-                            if (hit == null) {
-                                return;
+                            String text;
+                            text = readString(file);
+
+                            boolean anyMatch;
+                            anyMatch = analyzeFileIntoResult(file, javaBase, text, packages);
+                            if (anyMatch) {
+                                matchedFiles.incrementAndGet();
                             }
-
-                            matched.incrementAndGet();
-                            PackageStats stats = result.packages
-                                    .computeIfAbsent(hit.pkg, PackageStats::new);
-
-                            synchronized (stats) {
-                                stats.hits++;
-                                stats.classes.add(hit.clazz);
-                                stats.bigOs.addAll(hit.bigOs);
-                            }
-
                         } catch (Exception ignored) {
+                            // robust scanning: ignore individual file failures
                         }
                     });
         }
 
-        result.scannedFiles = scanned.get();
-        result.matchedFiles = matched.get();
-        return result;
+        return new AnalysisResult(packages, scanned.get(), matchedFiles.get());
     }
 
-    // ========= FAST BYTE SCAN =========
+    // =====================================================================
+    // FILE ANALYSIS
+    // =====================================================================
 
-    private static boolean containsAnyToken(Path file) throws IOException {
-        byte[] data = Files.readAllBytes(file);
-        outer:
-        for (int i = 0; i < data.length; i++) {
-            for (byte[] token : TOKENS) {
-                if (matchesAt(data, i, token)) {
-                    return true;
-                }
+    private static boolean analyzeFileIntoResult(
+            Path file,
+            Path javaBase,
+            String text,
+            Map<String, PackageResult> packages
+    ) {
+        String pkg;
+        pkg = derivePackage(file, javaBase);
+        if (pkg == null) return false;
+
+        String className;
+        className = stripHtmlSuffix(file.getFileName().toString());
+
+        boolean matchedAny;
+        matchedAny = false;
+
+        for (PatternDef def : PATTERNS) {
+            Matcher m;
+            m = def.pattern().matcher(text);
+
+            while (m.find()) {
+                matchedAny = true;
+
+                String ex;
+                ex = excerpt(text, m.start(), m.end(), 20);
+
+                PackageResult pr;
+                pr = packages.computeIfAbsent(pkg, k -> new PackageResult(k, new TreeMap<>()));
+
+                ClassResult cr;
+                cr = pr.classes().computeIfAbsent(className, k -> new ClassResult(k, new ArrayList<>()));
+
+                cr.matches().add(new MatchResult(def.name(), ex));
             }
         }
+
+        return matchedAny;
+    }
+
+    // =====================================================================
+    // FAST PRE-SCAN (PROBES, NO REGEX, NO DECODE)
+    // =====================================================================
+
+    private static boolean mightContainAnything(Path file) throws IOException {
+        byte[] data;
+        data = readAllBytes(file);
+
+        for (PatternDef def : PATTERNS) {
+            for (String probe : def.probes()) {
+                byte[] p;
+                p = probe.getBytes(US_ASCII);
+
+                int idx;
+                idx = def.probeCaseInsensitive()
+                        ? indexOfAsciiFoldLower(data, toAsciiLower(p))
+                        : indexOfExact(data, p);
+
+                if (0 <= idx) return true;
+            }
+        }
+
         return false;
     }
 
-    private static boolean matchesAt(byte[] data, int pos, byte[] token) {
-        if (pos + token.length > data.length) return false;
-        for (int i = 0; i < token.length; i++) {
-            if (data[pos + i] != token[i]) return false;
+    private static int indexOfExact(byte[] data, byte[] needle) {
+        if (needle.length == 0) return 0;
+        for (int i = 0; i + needle.length <= data.length; i++) {
+            boolean ok;
+            ok = true;
+
+            for (int j = 0; j < needle.length; j++) {
+                if (data[i + j] != needle[j]) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) return i;
         }
+        return -1;
+    }
+
+    /**
+     * Finds needleLower in data, comparing ASCII-case-insensitively by folding data bytes to lower.
+     * needleLower must already be ASCII-lowercased.
+     */
+    private static int indexOfAsciiFoldLower(byte[] data, byte[] needleLower) {
+        if (needleLower.length == 0) return 0;
+
+        for (int i = 0; i + needleLower.length <= data.length; i++) {
+            boolean ok;
+            ok = true;
+
+            for (int j = 0; j < needleLower.length; j++) {
+                byte b;
+                b = data[i + j];
+
+                if (toAsciiLower(b) != needleLower[j]) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) return i;
+        }
+        return -1;
+    }
+
+    private static byte[] toAsciiLower(byte[] in) {
+        byte[] outBytes;
+        outBytes = new byte[in.length];
+
+        for (int i = 0; i < in.length; i++) {
+            outBytes[i] = toAsciiLower(in[i]);
+        }
+        return outBytes;
+    }
+
+    private static byte toAsciiLower(byte b) {
+        if ('A' <= b && b <= 'Z') return (byte) (b + 32);
+        return b;
+    }
+
+    // =====================================================================
+    // FILTERING & PATH HANDLING
+    // =====================================================================
+
+    private static boolean isRealClassDoc(Path file) {
+        String fn;
+        fn = file.getFileName().toString();
+
+        if (!fn.endsWith(".html")) return false;
+        if ("package-summary.html".equals(fn)) return false;
+        if ("module-summary.html".equals(fn)) return false;
+
+        // exclude javadoc helper folders
+        if (containsPathSegment(file, "class-use")) return false;
+        if (containsPathSegment(file, "doc-files")) return false;
+
+        // many index pages are not class docs; keep only "ClassName.html"
+        // heuristic: class docs usually start with uppercase letter
+        String base;
+        base = stripHtmlSuffix(fn);
+        if (base.isEmpty()) return false;
+
+        char c;
+        c = base.charAt(0);
+        if (!Character.isUpperCase(c)) return false;
+
         return true;
     }
 
-    // ========= SEMANTIC EXTRACTION =========
-
-    private static final class FileHit {
-        String pkg;
-        String clazz;
-        Set<String> bigOs = new TreeSet<>();
-    }
-
-    private static FileHit extractHit(Path file, Path javaBase, String text) {
-        String pkg = derivePackage(file, javaBase);
-        if (pkg == null) return null;
-
-        FileHit hit = new FileHit();
-        hit.pkg = pkg;
-        hit.clazz = file.getFileName().toString().replace(".html", "");
-
-        // crude but fast Big-O extraction
-        int idx = 0;
-        while ((idx = text.indexOf("O(", idx)) >= 0) {
-            int end = Math.min(text.length(), idx + 20);
-            hit.bigOs.add(text.substring(idx, end).replaceAll("\\s+", " "));
-            idx += 2;
+    private static boolean containsPathSegment(Path path, String segment) {
+        for (Path p : path) {
+            if (segment.equals(p.toString())) return true;
         }
-
-        return hit;
+        return false;
     }
 
     private static String derivePackage(Path file, Path javaBase) {
@@ -178,48 +363,79 @@ public class JavadocPerfScan {
             return null;
         }
 
-        List<String> parts = new ArrayList<>();
+        List<String> parts;
+        parts = new ArrayList<>();
+
         for (Path p : rel) parts.add(p.toString());
 
-        int i = parts.indexOf("java");
+        int i;
+        i = parts.indexOf("java");
         if (i < 0) i = parts.indexOf("javax");
         if (i < 0) return null;
 
+        if (parts.size() - 1 <= i) return null;
         return String.join(".", parts.subList(i, parts.size() - 1));
     }
 
-    // ========= PATH DISCOVERY =========
-
     private static Path findJavaBase(Path root) throws IOException {
-        Path direct = root.resolve("docs/api/java.base");
-        if (Files.isDirectory(direct)) return direct;
+        Path direct;
+        direct = root.resolve("docs").resolve("api").resolve("java.base");
+        if (isDirectory(direct)) return direct;
 
-        try (Stream<Path> s = Files.walk(root, 6)) {
-            return s
-                    .filter(p -> p.getFileName().toString().equals("java.base"))
-                    .findFirst()
-                    .orElse(null);
+        try (Stream<Path> s = walk(root, 6)) {
+            Optional<Path> found;
+            found = s
+                    .filter(p -> "java.base".equals(p.getFileName().toString()))
+                    .findFirst();
+            return found.orElse(null);
         }
     }
 
-    // ========= OUTPUT =========
+    private static String stripHtmlSuffix(String s) {
+        if (s.endsWith(".html")) return s.substring(0, s.length() - 5);
+        return s;
+    }
+
+    // =====================================================================
+    // TEXT UTIL
+    // =====================================================================
+
+    private static String excerpt(String text, int start, int end, int radius) {
+        int a;
+        a = Math.max(0, start - radius);
+
+        int b;
+        b = Math.min(text.length(), end + radius);
+
+        String slice;
+        slice = text.substring(a, b);
+
+        // keep it readable in console
+        return slice.replaceAll("\\s+", " ").trim();
+    }
+
+    // =====================================================================
+    // OUTPUT
+    // =====================================================================
 
     private static void printResult(AnalysisResult r) {
-        System.out.println();
-        System.out.println("Scanned files : " + r.scannedFiles);
-        System.out.println("Matched files : " + r.matchedFiles);
-        System.out.println();
+        out.println();
+        out.println("Scanned files : " + r.scannedFiles());
+        out.println("Matched files : " + r.matchedFiles());
+        out.println();
 
-        r.packages.values().stream()
-                .sorted(Comparator.comparingInt((PackageStats p) -> p.hits).reversed())
-                .forEach(p -> {
-                    System.out.println(p.packageName);
-                    System.out.println("  hits    : " + p.hits);
-                    if (!p.bigOs.isEmpty()) {
-                        System.out.println("  Big-O   : " + String.join(", ", p.bigOs));
-                    }
-                    System.out.println("  classes : " + p.classes.size());
-                    System.out.println();
-                });
+        for (PackageResult p : r.packages().values()) {
+            out.println(p.name());
+
+            for (ClassResult c : p.classes().values()) {
+                out.println("  " + c.className());
+
+                for (MatchResult m : c.matches()) {
+                    out.println("    [" + m.patternName() + "] " + m.excerpt());
+                }
+            }
+
+            out.println();
+        }
     }
 }

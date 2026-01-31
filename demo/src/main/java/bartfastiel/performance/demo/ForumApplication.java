@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.*;
 
@@ -93,26 +94,29 @@ class ForumController {
 
     @GetMapping("/")
     String forum(Model model) {
-        var result = new ArrayList<CategoryView>();
+        var rows = repo.loadCategoryTopThreads();
 
-        for (var category : repo.findAll()) {
-            var threads =
-                    category.threads.stream()
-                            .map(t -> new ThreadView(
-                                    t.title,
-                                    t.posts.stream()
-                                            .mapToInt(p -> p.emojis.size())
-                                            .sum()
-                            ))
-                            .sorted(Comparator.comparingInt(ThreadView::emojiCount).reversed())
-                            .limit(5)
-                            .toList();
+        var byCategory = new LinkedHashMap<Long, CategoryViewBuilder>();
 
-            result.add(new CategoryView(category.name, threads));
+        for (var r : rows) {
+            var cat = byCategory.computeIfAbsent(
+                    r.getCategoryId(),
+                    id -> new CategoryViewBuilder(r.getCategoryName())
+            );
+            cat.threads.add(new ThreadView(r.getThreadTitle(), r.getEmojiCount()));
         }
 
-        model.addAttribute("categories", result);
+        model.addAttribute("categories",
+                byCategory.values().stream().map(CategoryViewBuilder::build).toList());
+
         return "forum";
+    }
+
+    static final class CategoryViewBuilder {
+        final String name;
+        final List<ThreadView> threads = new ArrayList<>();
+        CategoryViewBuilder(String name) { this.name = name; }
+        CategoryView build() { return new CategoryView(name, threads); }
     }
 }
 
@@ -153,7 +157,7 @@ class ForumThread {
     ForumCategory category;
 
     @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL)
-    List<ForumPost> posts = new ArrayList<>();
+    Set<ForumPost> posts = new HashSet<>();
 
     public ForumThread() {}
 
@@ -180,7 +184,7 @@ class ForumPost {
     ForumThread thread;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
-    List<EmojiReaction> emojis = new ArrayList<>();
+    Set<EmojiReaction> emojis = new HashSet<>();
 
     public ForumPost() {}
 
@@ -213,7 +217,45 @@ class EmojiReaction {
     }
 }
 
-interface ForumCategoryRepository extends JpaRepository<ForumCategory, Long> {}
+interface ThreadRow {
+    Long getCategoryId();
+    String getCategoryName();
+    Long getThreadId();
+    String getThreadTitle();
+    Integer getEmojiCount();
+}
+
+interface ForumCategoryRepository extends JpaRepository<ForumCategory, Long> {
+
+    @Query(value = """
+        select
+            x.category_id   as categoryId,
+            x.category_name as categoryName,
+            x.thread_id     as threadId,
+            x.thread_title  as threadTitle,
+            x.emoji_count   as emojiCount
+        from (
+            select
+                c.id as category_id,
+                c.name as category_name,
+                t.id as thread_id,
+                t.title as thread_title,
+                count(e.id) as emoji_count,
+                row_number() over (
+                    partition by c.id
+                    order by count(e.id) desc, t.id asc
+                ) as rn
+            from forum_category c
+            join forum_thread t on t.category_id = c.id
+            join forum_post p on p.thread_id = t.id
+            left join emoji_reaction e on e.post_id = p.id
+            group by c.id, c.name, t.id, t.title
+        ) x
+        where x.rn <= 5
+        order by x.category_name asc, x.emoji_count desc, x.thread_id asc
+        """, nativeQuery = true)
+    List<ThreadRow> loadCategoryTopThreads();
+}
 
 record CategoryView(String name, List<ThreadView> threads) {}
 record ThreadView(String title, int emojiCount) {}

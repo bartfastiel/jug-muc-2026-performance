@@ -18,6 +18,7 @@ public class BirthdayBenchmark {
 
     @Benchmark
     public void runMainProgram() throws Exception {
-        solution.juliett.Main.main();
+        //solution.juliett.Main.main();
+        complexity.alinear.Main.run(numberOfPersons);
     }
 }

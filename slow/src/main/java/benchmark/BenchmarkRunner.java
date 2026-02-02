@@ -11,7 +11,7 @@ public class BenchmarkRunner {
         PersonalDataGenerator.generate(n);
         new Runner(
                 new OptionsBuilder()
-                        .include(BirthdayBenchmark.class.getName().replace(".", "\\."))
+                        .include(Benchmark.class.getName().replace(".", "\\."))
                         .param("numberOfPersons", String.valueOf(n))
                         .build()
         ).run();

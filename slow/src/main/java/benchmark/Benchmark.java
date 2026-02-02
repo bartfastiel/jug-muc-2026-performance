@@ -11,14 +11,14 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 3)
 @Measurement(iterations = 5)
 @State(Scope.Benchmark)
-public class BirthdayBenchmark {
+public class Benchmark {
 
     @Param("1") // wird vom Runner überschrieben
     public int numberOfPersons;
 
-    @Benchmark
+    @org.openjdk.jmh.annotations.Benchmark
     public void runMainProgram() throws Exception {
         //solution.juliett.Main.main();
-        complexity.bconstant.Main.run(numberOfPersons);
+        complexity.aconstant.Main.run(numberOfPersons);
     }
 }

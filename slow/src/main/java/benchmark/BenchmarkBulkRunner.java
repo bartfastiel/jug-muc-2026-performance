@@ -41,7 +41,7 @@ public class BenchmarkBulkRunner {
                 Path tmp = Files.createTempFile("jmh-", ".csv");
 
                 Options opt = new OptionsBuilder()
-                        .include(BirthdayBenchmark.class.getName().replace(".", "\\."))
+                        .include(Benchmark.class.getName().replace(".", "\\."))
                         .param("numberOfPersons", String.valueOf(n))
                         .forks(1)
                         .warmupIterations(0)

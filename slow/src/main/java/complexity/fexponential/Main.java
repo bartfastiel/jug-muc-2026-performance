@@ -1,6 +1,4 @@
-package complexity.fexponential.equadratic;
-
-import static complexity.DoSomething.doSomething;
+package complexity.fexponential;
 
 public class Main {
     void main() {

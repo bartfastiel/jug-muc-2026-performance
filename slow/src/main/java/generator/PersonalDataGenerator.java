@@ -41,6 +41,10 @@ public class PersonalDataGenerator {
     }
 
     public static void generate(int numberOfPersons) throws IOException {
+        generate(numberOfPersons, Path.of("personal-data.zip"));
+    }
+
+    public static void generate(int numberOfPersons, Path outputPath) throws IOException {
         var random = new Random();
         var birthdaysAsDaysSince1Jan1930 = stream(new int[numberOfPersons])
                 .map(i -> {
@@ -49,8 +53,9 @@ public class PersonalDataGenerator {
                     return (int) random.nextLong(maxDays + 1);
                 })
                 .toArray();
-        generate(birthdaysAsDaysSince1Jan1930, Path.of("personal-data.zip"));
+        generate(birthdaysAsDaysSince1Jan1930, outputPath);
     }
+
 
     public static void generate(int[] birthdaysAsDaysSince1Jan1930, Path outputPath) throws IOException {
         println("Personal Data Generator");

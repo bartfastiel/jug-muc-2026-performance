@@ -72,8 +72,6 @@
     * oft kleine Hardware, Stromverbrauch, Hitzeentwicklung wichtig
   * Spieleentwicklung
   * Hochfrequenzhandel
-  * Big Data und KI
-  * Online-Shops
 
 * Und es gibt Bereiche da wird es als "nicht-funktionale Anforderung" abgetan
 * Als ich für eine große Versicherung während meiner Ausbildung vor über 20 Jahren Java-Programme geschrieben habe

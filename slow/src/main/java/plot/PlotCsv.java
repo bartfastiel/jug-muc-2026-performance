@@ -1,24 +1,27 @@
+import benchmark.BenchmarkParallelRunner;
+import lombok.Getter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.awt.geom.AffineTransform;
 
-void main(String[] args) {
-    String path = args.length > 0 ? args[0] : "results/measured.csv";
+void main(String[] args) throws Exception {
+    var path = args.length > 0 ? args[0] : "results/measured.csv";
     SwingUtilities.invokeLater(() -> start(path));
+    BenchmarkParallelRunner.main();
 }
 
 private static void start(String csvPath) {
-    JFrame frame = new JFrame("CSV Plot");
+    var frame = new JFrame("CSV Plot");
     frame.setUndecorated(true);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     frame.setLayout(new BorderLayout());
 
-    PlotPanel plot = new PlotPanel();
-    ControlPanel controls = new ControlPanel(plot);
+    var plot = new PlotPanel();
+    var controls = new ControlPanel(plot);
 
     frame.add(controls, BorderLayout.NORTH);
     frame.add(plot, BorderLayout.CENTER);
@@ -34,7 +37,7 @@ private static void start(String csvPath) {
         }
     });
 
-    GraphicsDevice gd = GraphicsEnvironment
+    var gd = GraphicsEnvironment
             .getLocalGraphicsEnvironment()
             .getDefaultScreenDevice();
     gd.setFullScreenWindow(frame);
@@ -57,7 +60,7 @@ static final class Series {
 
     void add(double x, double y) {
         if (xs.length == size) {
-            int n = xs.length + (xs.length >> 1);
+            var n = xs.length + (xs.length >> 1);
             xs = Arrays.copyOf(xs, n);
             ys = Arrays.copyOf(ys, n);
         }
@@ -87,16 +90,16 @@ static final class ControlPanel extends JPanel {
         setBackground(new Color(20, 20, 20));
         setLayout(new FlowLayout(FlowLayout.LEFT, 8, 4));
 
-        add(axisControls("X", plot.xMin, plot.xMax, plot.xAutoMax));
         add(axisControls("Y", plot.yMin, plot.yMax, plot.yAutoMax));
+        add(axisControls("X", plot.xMin, plot.xMax, plot.xAutoMax));
     }
 
     private JPanel axisControls(String label,
                                 JTextField min,
                                 JTextField max,
-                                JCheckBox auto) {
+                                PlotPanel.JDarkCheckBox auto) {
 
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        var p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         p.setBackground(getBackground());
 
         p.add(label(label + " Min"));
@@ -109,8 +112,8 @@ static final class ControlPanel extends JPanel {
     }
 
     private JLabel label(String s) {
-        JLabel l = new JLabel(s);
-        l.setForeground(Color.LIGHT_GRAY);
+        var l = new JLabel(s);
+        l.setForeground(new Color(60, 60, 60));
         return l;
     }
 }
@@ -131,11 +134,11 @@ static final class PlotPanel extends JPanel {
     // Axis controls (public for ControlPanel)
     final JTextField xMin = field("0");
     final JTextField xMax = field("");
-    final JCheckBox xAutoMax = autoBox();
+    final JDarkCheckBox xAutoMax = autoBox();
 
     final JTextField yMin = field("0");
     final JTextField yMax = field("");
-    final JCheckBox yAutoMax = autoBox();
+    final JDarkCheckBox yAutoMax = autoBox();
 
     private final Insets pad = new Insets(40, 80, 60, 30);
     private final Font font = new Font("SansSerif", Font.PLAIN, 16);
@@ -153,15 +156,53 @@ static final class PlotPanel extends JPanel {
     }
 
     static JTextField field(String s) {
-        JTextField f = new JTextField(s, 6);
+        var f = new JTextField(s, 6);
+        f.setForeground(Color.LIGHT_GRAY);
+        f.setBackground(new Color(30, 30, 30));
+        f.setBorder(BorderFactory.createLineBorder(new Color(60, 60, 60)));
         return f;
     }
 
-    static JCheckBox autoBox() {
-        JCheckBox c = new JCheckBox("Max", true);
-        c.setForeground(Color.LIGHT_GRAY);
-        c.setBackground(new Color(20, 20, 20));
-        return c;
+    static JDarkCheckBox autoBox() {
+        // our own custom dark-mode-checkbox (simple outline + eventually a checkmark) - custom because
+        // the default JCheckBox looks awful in dark mode
+        return new JDarkCheckBox("Auto Max", true);
+    }
+
+    static class JDarkCheckBox extends JComponent {
+        @Getter
+        private boolean selected;
+        private final String text;
+
+        JDarkCheckBox(String text, boolean initiallySelected) {
+            this.text = text;
+            this.selected = initiallySelected;
+            setPreferredSize(new Dimension(100, 24));
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    selected = !selected;
+                    repaint();
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setColor(new Color(30, 30, 30));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            if (selected) {
+                g2.setColor(new Color(100, 100, 100));
+                g2.drawRect(4, 4, 16, 16);
+                g2.drawLine(6, 12, 12, 18);
+                g2.drawLine(12, 18, 20, 6);
+            } else {
+                g2.setColor(Color.WHITE);
+                g2.drawRect(4, 4, 16, 16);
+            }
+            g2.drawString(text, 26,  16);
+        }
     }
 
     void startTailer(String path) {
@@ -177,9 +218,9 @@ static final class PlotPanel extends JPanel {
     }
 
     private void tail(String path) {
-        File f = new File(path);
+        var f = new File(path);
         long pos = 0;
-        boolean header = false;
+        var header = false;
 
         while (running) {
             try {
@@ -190,7 +231,7 @@ static final class PlotPanel extends JPanel {
                 }
                 errorMessage = null;
 
-                try (RandomAccessFile raf = new RandomAccessFile(f, "r")) {
+                try (var raf = new RandomAccessFile(f, "r")) {
                     if (raf.length() < pos) {
                         pos = 0;
                         header = false;
@@ -216,11 +257,11 @@ static final class PlotPanel extends JPanel {
 
     private void parse(String line) {
         // "slow.BirthdayBenchmark.runMainProgram","ss",1,1,"85,080500",NaN,"ms/op",7
-        String[] parts = line.split(",");
+        var parts = line.split(",");
         if (parts.length < 9) return;
         try {
-            double x = Double.parseDouble(parts[8]);
-            double y = Double.parseDouble((parts[4] + "," + parts[5]).replaceAll("\"", "").replace(',', '.'));
+            var x = Double.parseDouble(parts[9]);
+            var y = Double.parseDouble((parts[4] + "," + parts[5]).replaceAll("\"", "").replace(',', '.'));
             IO.println("Parsed: x=" + x + ", y=" + y);
             synchronized (series) {
                 series.add(x, y);
@@ -244,7 +285,7 @@ static final class PlotPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
+        var g2 = (Graphics2D) g;
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -253,8 +294,8 @@ static final class PlotPanel extends JPanel {
 
         if (errorMessage != null) {
             g2.setColor(Color.WHITE);
-            FontMetrics fm = g2.getFontMetrics();
-            int tw = fm.stringWidth(errorMessage);
+            var fm = g2.getFontMetrics();
+            var tw = fm.stringWidth(errorMessage);
             g2.drawString(errorMessage, (w - tw) / 2, h / 2);
             return;
         }
@@ -274,14 +315,14 @@ static final class PlotPanel extends JPanel {
             dataMaxY = series.maxY;
         }
 
-        double x0 = parseOr(xMin, 0);
-        double y0 = parseOr(yMin, 0);
+        var x0 = parseOr(xMin, 0);
+        var y0 = parseOr(yMin, 0);
 
-        double x1 = xAutoMax.isSelected()
+        var x1 = xAutoMax.isSelected()
                 ? dataMaxX * 1.05
                 : parseOr(xMax, dataMaxX);
 
-        double y1 = yAutoMax.isSelected()
+        var y1 = yAutoMax.isSelected()
                 ? dataMaxY * 1.05
                 : parseOr(yMax, dataMaxY);
 
@@ -295,14 +336,14 @@ static final class PlotPanel extends JPanel {
 
         drawGridAndTicks(g2, L, T, B, PW, PH, x0, x1, y0, y1);
 
-        int ps = Math.max(1, (int) Math.round(Math.min(w, h) * 0.005));
-        int half = ps / 2;
+        var ps = Math.max(1, (int) Math.round(Math.min(w, h) * 0.005));
+        var half = ps / 2;
 
         g2.setColor(new Color(100, 200, 255, 180));
         synchronized (series) {
-            for (int i = 0; i < series.size; i++) {
-                int px = L + (int) ((series.xs[i] - x0) / (x1 - x0) * PW);
-                int py = B - (int) ((series.ys[i] - y0) / (y1 - y0) * PH);
+            for (var i = 0; i < series.size; i++) {
+                var px = L + (int) ((series.xs[i] - x0) / (x1 - x0) * PW);
+                var py = B - (int) ((series.ys[i] - y0) / (y1 - y0) * PH);
                 g2.fillRect(px - half, py - half, ps, ps);
             }
         }
@@ -318,32 +359,32 @@ static final class PlotPanel extends JPanel {
                                   double x0, double x1,
                                   double y0, double y1) {
 
-        double xStep = niceStepPx(x1 - x0, PW, 120);
-        double yStep = niceStepPx(y1 - y0, PH, 100);
+        var xStep = niceStepPx(x1 - x0, PW, 120);
+        var yStep = niceStepPx(y1 - y0, PH, 100);
 
         g2.setColor(new Color(60, 60, 60));
 
-        for (double x = ceil(x0, xStep); x <= x1; x += xStep) {
-            int px = L + (int) ((x - x0) / (x1 - x0) * PW);
+        for (var x = ceil(x0, xStep); x <= x1; x += xStep) {
+            var px = L + (int) ((x - x0) / (x1 - x0) * PW);
             g2.drawLine(px, T, px, B);
         }
-        for (double y = ceil(y0, yStep); y <= y1; y += yStep) {
-            int py = B - (int) ((y - y0) / (y1 - y0) * PH);
+        for (var y = ceil(y0, yStep); y <= y1; y += yStep) {
+            var py = B - (int) ((y - y0) / (y1 - y0) * PH);
             g2.drawLine(L, py, L + PW, py);
         }
 
-        FontMetrics fm = g2.getFontMetrics();
+        var fm = g2.getFontMetrics();
         g2.setColor(Color.LIGHT_GRAY);
 
-        for (double x = ceil(x0, xStep); x <= x1; x += xStep) {
-            int px = L + (int) ((x - x0) / (x1 - x0) * PW);
-            String s = format(x);
+        for (var x = ceil(x0, xStep); x <= x1; x += xStep) {
+            var px = L + (int) ((x - x0) / (x1 - x0) * PW);
+            var s = format(x);
             g2.drawString(s, px - fm.stringWidth(s) / 2, B + 22);
         }
 
-        for (double y = ceil(y0, yStep); y <= y1; y += yStep) {
-            int py = B - (int) ((y - y0) / (y1 - y0) * PH);
-            String s = format(y);
+        for (var y = ceil(y0, yStep); y <= y1; y += yStep) {
+            var py = B - (int) ((y - y0) / (y1 - y0) * PH);
+            var s = format(y);
             g2.drawString(s, L - 8 - fm.stringWidth(s), py + fm.getAscent() / 2);
         }
 
@@ -356,7 +397,7 @@ static final class PlotPanel extends JPanel {
         g2.setColor(Color.WHITE);
         g2.drawString("Anzahl Personen", L + PW / 2 - 80, B + 42);
 
-        AffineTransform old = g2.getTransform();
+        var old = g2.getTransform();
         g2.rotate(-Math.PI / 2);
         g2.drawString("Laufzeit [ms]", -T - PH / 2 - 60, L - 50);
         g2.setTransform(old);
@@ -366,13 +407,13 @@ static final class PlotPanel extends JPanel {
                            double x0, double x1) {
         if (mouseX < L || mouseX > L + PW) return;
 
-        double xVal = x0 + (mouseX - L) / (double) PW * (x1 - x0);
+        var xVal = x0 + (mouseX - L) / (double) PW * (x1 - x0);
 
-        StringBuilder sb = new StringBuilder("X ≈ ").append(format(xVal)).append('\n');
-        int count = 0;
+        var sb = new StringBuilder("X ≈ ").append(format(xVal)).append('\n');
+        var count = 0;
 
         synchronized (series) {
-            for (int i = 0; i < series.size; i++) {
+            for (var i = 0; i < series.size; i++) {
                 if (Math.abs(series.xs[i] - xVal) < (x1 - x0) * 0.002) {
                     sb.append(format(series.ys[i])).append(" ms\n");
                     count++;
@@ -381,20 +422,20 @@ static final class PlotPanel extends JPanel {
         }
         if (count == 0) return;
 
-        String[] lines = sb.toString().split("\n");
-        FontMetrics fm = g2.getFontMetrics();
-        int w = 0;
-        for (String s : lines) w = Math.max(w, fm.stringWidth(s));
-        int h = fm.getHeight() * lines.length + 6;
+        var lines = sb.toString().split("\n");
+        var fm = g2.getFontMetrics();
+        var w = 0;
+        for (var s : lines) w = Math.max(w, fm.stringWidth(s));
+        var h = fm.getHeight() * lines.length + 6;
 
-        int x = getWidth() - w - 30;
-        int y = 40;
+        var x = getWidth() - w - 30;
+        var y = 40;
 
         g2.setColor(new Color(0, 0, 0, 200));
         g2.fillRect(x - 6, y - 6, w + 12, h);
         g2.setColor(Color.WHITE);
 
-        for (int i = 0; i < lines.length; i++)
+        for (var i = 0; i < lines.length; i++)
             g2.drawString(lines[i], x, y + (i + 1) * fm.getHeight());
     }
 
@@ -414,9 +455,9 @@ static final class PlotPanel extends JPanel {
     }
 
     private static double niceStep(double range, int ticks) {
-        double r = range / ticks;
-        double p = Math.pow(10, Math.floor(Math.log10(r)));
-        double n = r / p;
+        var r = range / ticks;
+        var p = Math.pow(10, Math.floor(Math.log10(r)));
+        var n = r / p;
         if (n < 1.5) return p;
         if (n < 3) return 2 * p;
         if (n < 7) return 5 * p;

@@ -1,7 +1,6 @@
 package complexity.aconstant;
 
 import static complexity.DoSomething.doSomething;
-import static complexity.blinear.Main.run;
 
 public class Main {
     void main() {

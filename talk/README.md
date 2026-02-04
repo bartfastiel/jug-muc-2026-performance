@@ -254,3 +254,5 @@
 * Computer werden schneller - Dein Programm wird automatisch günstiger zu betreiben
 
 * TikTok, Youtube-Shorts, Facebook-Reels - ich merke, dass ich selbst ungeduldiger werde
+
+* Monitoring (java flight recorder, Grafana - talk of last week)

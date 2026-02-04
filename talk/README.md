@@ -239,4 +239,18 @@
 * End-to-End-Latency Thinking (Google SRE, Brendan Gregg)
 * Brendan Gregg – USE / RED Method https://pagertree.com/learn/devops/what-is-observability/use-and-red-method
 
+* Am Anfang meiner Karriere Java Struts Webanwendung für Versicherung
+  * Ich wollte es 120% gut machen
+  * Habe den Code super elegant geschrieben
+  * Sauber eingerückt
+  * Das Laden der Webseite wurde langsam, ich suche nach dem Bottleneck
+    * Das HTML-File war gigantisch!
+    * 95% Whitespaces!
+    * Ich habe dann die spitzen Klammern der Tags erst in der neuen Zeile gesetzt
+    * Performance-Problem: gelöst (x-fach schneller)
 
+* Kosten der entgangenen Chancen, Opportunity Cost
+
+* Computer werden schneller - Dein Programm wird automatisch günstiger zu betreiben
+
+* TikTok, Youtube-Shorts, Facebook-Reels - ich merke, dass ich selbst ungeduldiger werde

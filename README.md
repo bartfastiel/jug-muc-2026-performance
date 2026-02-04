@@ -19,3 +19,10 @@ Hans      ;Fischer         ;1964-03-12;
 Susi      ;Fischer         ;1959-08-06;
 Hans      ;Schmidt         ;1985-09-13;
 ```
+
+### scripts
+
+```
+time /C/jug-performance/graalvm-jdk-25.0.2+10.1/bin/java.exe slow/src/main/java/solution/kilo/Main.java
+time /C/jug-performance/jdk-25_windows-x64_bin/jdk-25.0.2/bin/java.exe slow/src/main/java/solution/kilo/Main.java
+```

@@ -17,6 +17,25 @@
 * Lösung sind 3,5 Sekunden
 * Entsprechend Skala von 100 Minuten bis 1 Millisekunde
 
+## großes Bild
+
+* Intro: Performance ist Kaufkriterium
+* Javadoc (dann Überleitung via "was bedeutet das eigentlich?")
+* Big-O
+* Unzulänglichkeit von Big-O für konkretes Projekt
+* Performance vereinbaren als Zeit in Sekunden (nicht Komplexität) - für App, nicht für Library
+  * Würze = OData Verkehrsbetriebe
+* Clean Code vs Performance - Dreamteam oder Widersacher? (Überleitung: deshalb nur dort optimieren, wo es wirklich nötig ist)
+* Performance-Ideen (Caching, Dinge vorbereiten, return early, Datenformate, Parallelisieren)
+* Betriebswirtschaftliche Aspekte (Kundenzufriedenheit, Maintainability, Opportunity Cost, Horizontal Skalieren=Komplexität)
+* Performance-Cycle: Messen, Analysieren, Optimieren, Messen
+* Sind die anderen Schuld? Beispiel: Spring Boot, Java Melody
+  * (Überleitung: wenn es an dir liegt: IntelliJ Ultimate Profiler)
+  * Würze: Welche IDE nutzt Du?
+* Aufgabe
+* Konzepte auch auf Python übertragbar
+ 
+
 ## live
 
 [zwei ferngesteuerte Autos fahren im Raum zwischen den Stühlen herum. Eines langsam, das andere schnell]
@@ -256,3 +275,9 @@
 * TikTok, Youtube-Shorts, Facebook-Reels - ich merke, dass ich selbst ungeduldiger werde
 
 * Monitoring (java flight recorder, Grafana - talk of last week)
+
+* Machs einmal von Hand (wie Karten-Sortieraufgabe für Gruppe von Azubis in Schweiz)
+
+* Premature Optimization Is The Root Of All Evil
+  * aber das heißt nicht, dass Du erst eine fertige App beim Kunden brauchst
+  * 

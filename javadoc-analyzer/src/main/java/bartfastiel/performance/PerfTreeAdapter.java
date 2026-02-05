@@ -109,9 +109,28 @@ public final class PerfTreeAdapter {
 
         int sum = n.hitsLocal;
 
-        for (var c : n.children) {
-            sum += aggregateHits(c);
+        List<JavadocPackageTreeView.Node.Hotspot> collected = new ArrayList<>();
+
+        if (n.kind == JavadocPackageTreeView.NodeKind.TYPE && n.hitsLocal > 0) {
+            collected.add(new JavadocPackageTreeView.Node.Hotspot(n.name, n.hitsLocal));
         }
+
+        for (JavadocPackageTreeView.Node c : n.children) {
+
+            sum += aggregateHits(c);
+
+            collected.addAll(c.topHotspots);
+        }
+
+        // Top 5 Hotspots speichern
+        collected.sort((a, b) -> Integer.compare(b.hits(), a.hits()));
+
+        if (5 < collected.size()) {
+            collected = collected.subList(0, 5);
+        }
+
+        n.topHotspots.clear();
+        n.topHotspots.addAll(collected);
 
         n.hitsAgg = sum;
         return sum;

@@ -26,6 +26,9 @@ public final class JavadocPackageTreeView extends JComponent {
     int subtreeSlots;
 
     double x, y;
+    public List<Hotspot> topHotspots = new ArrayList<>();
+
+    public record Hotspot(String name, int hits) {}
 
     public Node(String name, String fullName, NodeKind kind) {
       this.name = name;
@@ -74,57 +77,90 @@ public final class JavadocPackageTreeView extends JComponent {
 
         if (hit == null) {
           setToolTipText(null);
+          hoveredNode = null;
           return;
         }
 
-        String kind =
-                hit.kind == NodeKind.PACKAGE
-                        ? "Package"
-                        : "Type";
+        hoveredNode = hit;
 
-        String excerptHtml =
-                hit.excerpts.isEmpty()
+        // Treffer bestimmen: Package = aggregated, Type = local
+        int hits =
+                hit.kind == NodeKind.PACKAGE
+                        ? hit.hitsAgg
+                        : hit.hitsLocal;
+
+        // Treffer-Text nur wenn > 0
+        String hitsText =
+                hits == 0
                         ? ""
-                        : "<br><br><div style='font-family:monospace;font-size:12px;color:#ccc;'>"
-                        + String.join("<br>", hit.excerpts)
+                        : "<div style='margin-top:6px;font-size:15px;color:#ff6666;'>"
+                        + hits + " Treffer"
                         + "</div>";
+
+        // Excerpts nur bei Klassen
+        String excerptHtml =
+                (hit.kind == NodeKind.TYPE && !hit.excerpts.isEmpty())
+                        ? "<br><div style='font-family:monospace;font-size:12px;color:#ccc;'>"
+                        + String.join("<br>", hit.excerpts)
+                        + "</div>"
+                        : "";
+
+        // Hotspot-Liste nur bei Packages
+        String hotspotHtml = "";
+
+        if (hit.kind == NodeKind.PACKAGE && !hit.topHotspots.isEmpty()) {
+
+          StringBuilder sb = new StringBuilder();
+
+          sb.append("<br><div style='font-size:13px;color:#ddd;'>");
+
+          for (var hs : hit.topHotspots) {
+            sb.append("&nbsp;&nbsp;")
+                    .append(hs.name())
+                    .append(" — ")
+                    .append(hs.hits())
+                    .append(" Treffer<br>");
+          }
+
+          sb.append("</div>");
+
+          hotspotHtml = sb.toString();
+        }
 
         setToolTipText("""
 <html>
-<div style="background:#111;
-            color:#eee;
-            padding:10px;
-            border:1px solid #444;
-            font-family:sans-serif;">
+<div style="
+    background:#111;
+    color:#eee;
+    padding:12px;
+    border:1px solid #444;
+    font-family:sans-serif;
+    min-width:280px;
+">
 
-  <div style="font-size:22px;
-              font-weight:bold;">
+  <div style="font-size:22px;font-weight:bold;">
     %s
   </div>
 
-  <div style="font-size:12px;
-              color:#aaa;
-              margin-bottom:8px;">
+  <div style="font-size:12px;color:#aaa;">
     %s
   </div>
 
-  <div style="font-size:13px;">
-    hitsLocal=%d<br>
-    hitsAgg=%d<br>
-    %s
-  </div>
+  %s
+  %s
+  %s
 
 </div>
 </html>
 """.formatted(
                 hit.fullName,
-                hit.kind,
-                hit.hitsLocal,
-                hit.hitsAgg,
+                hit.kind == NodeKind.PACKAGE ? "Package" : "Klasse",
+                hitsText,
+                hotspotHtml,
                 excerptHtml
         ));
-        hoveredNode = hit;
       }
+
     });
 
     addComponentListener(new ComponentAdapter() {

@@ -1,6 +1,7 @@
 package bartfastiel.performance;
 
 import javax.swing.*;
+import java.awt.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -35,8 +36,10 @@ public final class PerfViewerMain {
 
             view.setMaxHits(max);
 
-            JFrame f =
-                    new JFrame("OpenJDK Performance Hotspots");
+            JFrame f = new JFrame();
+            f.setUndecorated(true);
+            f.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            f.setBackground(new Color(0,0,0));
 
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             f.setSize(1600, 1000);

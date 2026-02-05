@@ -18,6 +18,7 @@ public final class JavadocPackageTreeView extends JComponent {
     public final NodeKind kind;
 
     public final List<Node> children = new ArrayList<>();
+    public List<String> excerpts = new ArrayList<>();
 
     public int hitsLocal;
     public int hitsAgg;
@@ -40,6 +41,7 @@ public final class JavadocPackageTreeView extends JComponent {
   private List<Edge> edges = List.of();
 
   private int maxHits = 1;
+  private Node hoveredNode;
 
   private record Edge(Node a, Node b) {}
 
@@ -48,9 +50,21 @@ public final class JavadocPackageTreeView extends JComponent {
     this.root = root;
 
     setOpaque(true);
-    setBackground(Color.WHITE);
+    setBackground(new Color(0, 0, 0));
 
     ToolTipManager.sharedInstance().registerComponent(this);
+    ToolTipManager.sharedInstance().setInitialDelay(50);
+    ToolTipManager.sharedInstance().setReshowDelay(0);
+    ToolTipManager.sharedInstance().setDismissDelay(10_000);
+
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (hoveredNode == null) return;
+
+        openInApiDir(hoveredNode);
+      }
+    });
 
     addMouseMotionListener(new MouseMotionAdapter() {
       @Override
@@ -69,18 +83,39 @@ public final class JavadocPackageTreeView extends JComponent {
                         : "Type";
 
         setToolTipText("""
-                        <html>
-                        <b>%s</b><br>
-                        %s<br>
-                        hitsLocal=%d<br>
-                        hitsAgg=%d
-                        </html>
-                        """.formatted(
-                kind,
+<html>
+<div style="background:#111;
+            color:#eee;
+            padding:10px;
+            border:1px solid #444;
+            font-family:sans-serif;">
+
+  <div style="font-size:22px;
+              font-weight:bold;">
+    %s
+  </div>
+
+  <div style="font-size:12px;
+              color:#aaa;
+              margin-bottom:8px;">
+    %s
+  </div>
+
+  <div style="font-size:13px;">
+    hitsLocal=%d<br>
+    hitsAgg=%d
+  </div>
+
+</div>
+</html>
+""".formatted(
                 hit.fullName,
+                hit.kind,
                 hit.hitsLocal,
                 hit.hitsAgg
         ));
+        hoveredNode = hit;
+
       }
     });
 
@@ -106,6 +141,8 @@ public final class JavadocPackageTreeView extends JComponent {
     Graphics2D g2 = (Graphics2D) g.create();
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
             RenderingHints.VALUE_ANTIALIAS_ON);
+    g2.setColor(getBackground());
+    g2.fillRect(0, 0, getWidth(), getHeight());
 
     if (layoutDirty) {
       rebuildLayout();
@@ -289,7 +326,7 @@ public final class JavadocPackageTreeView extends JComponent {
 
     t = Math.max(0, Math.min(1, t));
 
-    float base = 0.75f;
+    float base = 0.25f;
 
     float r = base + (1 - base) * t;
     float g = base * (1 - t);
@@ -324,4 +361,28 @@ public final class JavadocPackageTreeView extends JComponent {
 
     return best;
   }
+
+  private void openInApiDir(Node n) {
+
+    if (n.kind != NodeKind.TYPE) return;
+
+    String full = n.fullName;
+
+    int lastDot = full.lastIndexOf('.');
+    if (lastDot < 0) return;
+
+    String pkg = full.substring(0, lastDot);
+    String cls = full.substring(lastDot + 1);
+
+    String url =
+            "https://apidia.net/java/OpenJDK/25/"
+                    + "?pck=java.base-all-classes"
+                    + "&cls=" + pkg + "." + cls;
+
+    try {
+      Desktop.getDesktop().browse(new java.net.URI(url));
+    } catch (Exception ignored) {
+    }
+  }
+
 }

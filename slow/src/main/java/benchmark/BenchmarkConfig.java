@@ -18,6 +18,6 @@ public class BenchmarkConfig {
 
     @Benchmark
     public void runMainProgram() {
-        complexity.equadratic.Main.run(numberOfPersons);
+        complexity.blinear.Main.run(numberOfPersons);
     }
 }

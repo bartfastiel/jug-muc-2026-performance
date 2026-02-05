@@ -29,7 +29,7 @@
 * Mit welcher Grafikkarte gibst Du am Pausenhof an?
 
 * Mit der schnellsten Grafikkarte
-* Mit dem ruckelfreien Handy
+* Du Kaufst das ruckelfreie Handy
 * Das ferngesteuerte Auto, das 30 km/h fährt
   * und bei dem Du den Kindern sagen musst, dass sie sich nicht blitzen lassen dürfen.
 
@@ -294,6 +294,10 @@
 
 * Machs einmal von Hand (wie Karten-Sortieraufgabe für Gruppe von Azubis in Schweiz)
 
+* Parallelisieren
+  * Mehrere Threads, Prozesse, Server
+  * Aber: Synchronisation
+
 * Nutze eine gute Programmiersprache
   * z.B. Perl, Python oder Visual Basic - wenn Dir die Performance egal ist
   * oder aber Assembler, Rust, C oder C++ - wenn Du Performance um jeden Preis brauchst
@@ -302,6 +306,7 @@
 ### Betriebswirtschaftliche Aspekte (Kundenzufriedenheit, Maintainability, Opportunity Cost, Horizontal Skalieren=Komplexität)
 > Würze: uCORE 4000€ Server mit DB und konstanten Abfragen => 40€ Raspberry PI
 
+* Zitat Linus Torvalds: "Some people say you should not micro optimize, but if what you love is micro optimization, that is what you should do." [Quelle](hhttps://youtube.com/shorts/Z65bQJKsnLk?si=b3IP8RDA7015u_zJ)
 
 * Es geht darum die Reibung zu minimieren - also versuche nicht "Performance einzubauen", sondern "Bottlenecks zu entfernen"
 
@@ -375,8 +380,6 @@
 ### Konzepte auch auf Python übertragbar
 ### Schlussworte
 
-* Zitat Linus Torvalds: "Some people say you should not micro optimize, but if what you love is micro optimization, that is what you should do." [Quelle](hhttps://youtube.com/shorts/Z65bQJKsnLk?si=b3IP8RDA7015u_zJ)
-
 * Keine Ode an Performance
 * Sondern Toolset um nicht nur Featurereiche
 * sondern auch nützliche Anwendungen
@@ -391,3 +394,8 @@ https://apidia.net/java/OpenJDK/25/?pck=java.base-all-classes&cls=java.util.Link
 ```
 Like HashSet, it provides constant-time performance for the basic operations (add, contains and remove), assuming the hash function disperses elements properly among the buckets. Performance is likely to be just slightly below that of HashSet, due to the added expense of maintaining the linked list, with one exception: Iteration over a LinkedHashSet requires time proportional to the size of the set, regardless of its capacity. Iteration over a HashSet is likely to be more expensive, requiring time proportional to its capacity.
 ```
+
+
+todo
+aus web app username raus
+

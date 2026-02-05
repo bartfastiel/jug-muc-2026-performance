@@ -21,6 +21,7 @@
 
 * Intro: Performance ist Kaufkriterium
 * Javadoc (dann Überleitung via "was bedeutet das eigentlich?")
+* Würze: Tiersammelkarten
 * Big-O
 * Unzulänglichkeit von Big-O für konkretes Projekt
 * Performance vereinbaren als Zeit in Sekunden (nicht Komplexität) - für App, nicht für Library

@@ -194,11 +194,16 @@ public final class JavadocPackageTreeView extends JComponent {
     }
 
     // edges
-    g2.setStroke(new BasicStroke(1.0f));
+    g2.setStroke(new BasicStroke(
+            12.8f,
+            BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_ROUND
+    ));
 
     for (Edge e : edges) {
 
-      g2.setColor(mixGrayToRed(intensity(e.b)));
+      Color c = mixGrayToRed(intensity(e.b));
+      g2.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 200));
 
       g2.draw(curve(e.a, e.b));
     }
@@ -207,9 +212,17 @@ public final class JavadocPackageTreeView extends JComponent {
     for (Node n : nodes) {
 
       float t = intensity(n);
+
+      if (0.2f < t) {
+        g2.setStroke(new BasicStroke(12.0f,
+                BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_ROUND));
+      } else {
+        g2.setStroke(new BasicStroke(4.0f));
+      }
       Color c = mixGrayToRed(t);
 
-      double r = (n.kind == NodeKind.TYPE) ? 4 : 3;
+      double r = (n.kind == NodeKind.TYPE) ? 7 : 6;
 
       var dot =
               new Ellipse2D.Double(
@@ -370,11 +383,11 @@ public final class JavadocPackageTreeView extends JComponent {
 
     t = Math.max(0, Math.min(1, t));
 
-    float base = 0.25f;
+    float base = 1f;
 
     float r = base + (1 - base) * t;
-    float g = base * (1 - t);
-    float b = base * (1 - t);
+    float g = base * (1 - t * 0.85f);
+    float b = base * (1 - t * 0.85f);
 
     return new Color(r, g, b);
   }
@@ -390,7 +403,7 @@ public final class JavadocPackageTreeView extends JComponent {
 
     for (Node n : nodes) {
 
-      double r = (n.kind == NodeKind.TYPE) ? 6 : 5;
+      double r = (n.kind == NodeKind.TYPE) ? 12 : 8;
 
       double dx = mx - n.x;
       double dy = my - n.y;

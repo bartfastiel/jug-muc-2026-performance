@@ -1,6 +1,7 @@
 package bartfastiel.performance;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -19,20 +20,9 @@ import static java.nio.file.Files.walk;
 
 public final class JavadocPerfScan {
 
-    // =====================================================================
-    // CONFIG
-    // =====================================================================
-
     private static final String ORACLE_DOC_URL =
             "https://www.oracle.com/java/technologies/javase-jdk25-doc-downloads.html";
 
-    /**
-     * Define what you scan here: name + compiled Pattern + probes for fast pre-scan.
-     *
-     * Why probes?
-     * - We avoid decoding + regex for most files.
-     * - Probes should be small, highly selective substrings.
-     */
     private static final List<PatternDef> PATTERNS = List.of(
             new PatternDef(
                     "Big-O",
@@ -72,10 +62,6 @@ public final class JavadocPerfScan {
             )
     );
 
-    // =====================================================================
-    // RECORDS: MODEL
-    // =====================================================================
-
     public record AnalysisResult(
             Map<String, PackageResult> packages,
             int scannedFiles,
@@ -97,12 +83,6 @@ public final class JavadocPerfScan {
             String excerpt
     ) {}
 
-    /**
-     * PatternDef:
-     * - pattern is already compiled at call site (flags per pattern).
-     * - probes are literal snippets for a fast byte pre-scan.
-     * - probeCaseInsensitive controls ASCII-fold matching for probes.
-     */
     public record PatternDef(
             String name,
             Pattern pattern,
@@ -110,26 +90,20 @@ public final class JavadocPerfScan {
             boolean probeCaseInsensitive
     ) {}
 
-    // =====================================================================
-    // MAIN
-    // =====================================================================
-
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             printUsage();
             return;
         }
 
-        Path root;
-        root = Paths.get(args[0]);
+        Path root = Paths.get(args[0]);
 
         if (!isDirectory(root)) {
             err.println("Not a directory: " + root);
             return;
         }
 
-        AnalysisResult result;
-        result = analyze(root);
+        AnalysisResult result = analyze(root);
 
         printResult(result);
     }
@@ -146,27 +120,14 @@ public final class JavadocPerfScan {
                   """ + ORACLE_DOC_URL);
     }
 
-    // =====================================================================
-    // CORE API (reuse later for Graphics2D)
-    // =====================================================================
-
     public static AnalysisResult analyze(Path extractedJavadocRoot) throws IOException {
-        Path javaBase;
-        javaBase = findJavaBase(extractedJavadocRoot);
-        if (javaBase == null) {
-            throw new IllegalStateException("Could not find java.base under " + extractedJavadocRoot);
-        }
 
-        Map<String, PackageResult> packages;
-        packages = new TreeMap<>();
+        Map<String, PackageResult> packages = new TreeMap<>();
 
-        AtomicInteger scanned;
-        scanned = new AtomicInteger(0);
+        AtomicInteger scanned = new AtomicInteger(0);
+        AtomicInteger matchedFiles = new AtomicInteger(0);
 
-        AtomicInteger matchedFiles;
-        matchedFiles = new AtomicInteger(0);
-
-        try (Stream<Path> files = walk(javaBase)) {
+        try (Stream<Path> files = walk(extractedJavadocRoot)) {
             files
                     .filter(JavadocPerfScan::isRealClassDoc)
                     .parallel()
@@ -177,16 +138,16 @@ public final class JavadocPerfScan {
                                 return;
                             }
 
-                            String text;
-                            text = readString(file);
+                            String text = readString(file);
 
-                            boolean anyMatch;
-                            anyMatch = analyzeFileIntoResult(file, javaBase, text, packages);
+                            boolean anyMatch =
+                                    analyzeFileIntoResult(file, extractedJavadocRoot, text, packages);
+
                             if (anyMatch) {
                                 matchedFiles.incrementAndGet();
                             }
+
                         } catch (Exception ignored) {
-                            // robust scanning: ignore individual file failures
                         }
                     });
         }
@@ -194,41 +155,34 @@ public final class JavadocPerfScan {
         return new AnalysisResult(packages, scanned.get(), matchedFiles.get());
     }
 
-    // =====================================================================
-    // FILE ANALYSIS
-    // =====================================================================
-
     private static boolean analyzeFileIntoResult(
             Path file,
             Path javaBase,
             String text,
             Map<String, PackageResult> packages
     ) {
-        String pkg;
-        pkg = derivePackage(file, javaBase);
+        String pkg = derivePackage(file, javaBase);
         if (pkg == null) return false;
 
-        String className;
-        className = stripHtmlSuffix(file.getFileName().toString());
+        String className = stripHtmlSuffix(file.getFileName().toString());
 
-        boolean matchedAny;
-        matchedAny = false;
+        boolean matchedAny = false;
 
         for (PatternDef def : PATTERNS) {
-            Matcher m;
-            m = def.pattern().matcher(text);
+            Matcher m = def.pattern().matcher(text);
 
             while (m.find()) {
                 matchedAny = true;
 
-                String ex;
-                ex = excerpt(text, m.start(), m.end(), 20);
+                String ex = excerpt(text, m.start(), m.end(), 20);
 
-                PackageResult pr;
-                pr = packages.computeIfAbsent(pkg, k -> new PackageResult(k, new TreeMap<>()));
+                PackageResult pr =
+                        packages.computeIfAbsent(pkg,
+                                k -> new PackageResult(k, new TreeMap<>()));
 
-                ClassResult cr;
-                cr = pr.classes().computeIfAbsent(className, k -> new ClassResult(k, new ArrayList<>()));
+                ClassResult cr =
+                        pr.classes().computeIfAbsent(className,
+                                k -> new ClassResult(k, new ArrayList<>()));
 
                 cr.matches().add(new MatchResult(def.name(), ex));
             }
@@ -237,23 +191,19 @@ public final class JavadocPerfScan {
         return matchedAny;
     }
 
-    // =====================================================================
-    // FAST PRE-SCAN (PROBES, NO REGEX, NO DECODE)
-    // =====================================================================
-
     private static boolean mightContainAnything(Path file) throws IOException {
-        byte[] data;
-        data = readAllBytes(file);
+
+        byte[] data = readAllBytes(file);
 
         for (PatternDef def : PATTERNS) {
             for (String probe : def.probes()) {
-                byte[] p;
-                p = probe.getBytes(US_ASCII);
 
-                int idx;
-                idx = def.probeCaseInsensitive()
-                        ? indexOfAsciiFoldLower(data, toAsciiLower(p))
-                        : indexOfExact(data, p);
+                byte[] p = probe.getBytes(US_ASCII);
+
+                int idx =
+                        def.probeCaseInsensitive()
+                                ? indexOfAsciiFoldLower(data, toAsciiLower(p))
+                                : indexOfExact(data, p);
 
                 if (0 <= idx) return true;
             }
@@ -263,10 +213,12 @@ public final class JavadocPerfScan {
     }
 
     private static int indexOfExact(byte[] data, byte[] needle) {
+
         if (needle.length == 0) return 0;
+
         for (int i = 0; i + needle.length <= data.length; i++) {
-            boolean ok;
-            ok = true;
+
+            boolean ok = true;
 
             for (int j = 0; j < needle.length; j++) {
                 if (data[i + j] != needle[j]) {
@@ -274,43 +226,45 @@ public final class JavadocPerfScan {
                     break;
                 }
             }
+
             if (ok) return i;
         }
+
         return -1;
     }
 
-    /**
-     * Finds needleLower in data, comparing ASCII-case-insensitively by folding data bytes to lower.
-     * needleLower must already be ASCII-lowercased.
-     */
     private static int indexOfAsciiFoldLower(byte[] data, byte[] needleLower) {
+
         if (needleLower.length == 0) return 0;
 
         for (int i = 0; i + needleLower.length <= data.length; i++) {
-            boolean ok;
-            ok = true;
+
+            boolean ok = true;
 
             for (int j = 0; j < needleLower.length; j++) {
-                byte b;
-                b = data[i + j];
+
+                byte b = data[i + j];
 
                 if (toAsciiLower(b) != needleLower[j]) {
                     ok = false;
                     break;
                 }
             }
+
             if (ok) return i;
         }
+
         return -1;
     }
 
     private static byte[] toAsciiLower(byte[] in) {
-        byte[] outBytes;
-        outBytes = new byte[in.length];
+
+        byte[] outBytes = new byte[in.length];
 
         for (int i = 0; i < in.length; i++) {
             outBytes[i] = toAsciiLower(in[i]);
         }
+
         return outBytes;
     }
 
@@ -319,30 +273,21 @@ public final class JavadocPerfScan {
         return b;
     }
 
-    // =====================================================================
-    // FILTERING & PATH HANDLING
-    // =====================================================================
+    public static boolean isRealClassDoc(Path file) {
 
-    private static boolean isRealClassDoc(Path file) {
-        String fn;
-        fn = file.getFileName().toString();
+        String fn = file.getFileName().toString();
 
         if (!fn.endsWith(".html")) return false;
         if ("package-summary.html".equals(fn)) return false;
         if ("module-summary.html".equals(fn)) return false;
 
-        // exclude javadoc helper folders
         if (containsPathSegment(file, "class-use")) return false;
         if (containsPathSegment(file, "doc-files")) return false;
 
-        // many index pages are not class docs; keep only "ClassName.html"
-        // heuristic: class docs usually start with uppercase letter
-        String base;
-        base = stripHtmlSuffix(fn);
+        String base = stripHtmlSuffix(fn);
         if (base.isEmpty()) return false;
 
-        char c;
-        c = base.charAt(0);
+        char c = base.charAt(0);
         if (!Character.isUpperCase(c)) return false;
 
         return true;
@@ -355,79 +300,54 @@ public final class JavadocPerfScan {
         return false;
     }
 
-    private static String derivePackage(Path file, Path javaBase) {
+    private static String derivePackage(Path file, Path root) {
+
         Path rel;
+
         try {
-            rel = javaBase.relativize(file);
+            rel = root.relativize(file);
         } catch (Exception e) {
             return null;
         }
 
-        List<String> parts;
-        parts = new ArrayList<>();
+        if (rel.getNameCount() < 2) return null;
 
-        for (Path p : rel) parts.add(p.toString());
+        Path parent = rel.getParent();
+        if (parent == null) return null;
 
-        int i;
-        i = parts.indexOf("java");
-        if (i < 0) i = parts.indexOf("javax");
-        if (i < 0) return null;
-
-        if (parts.size() - 1 <= i) return null;
-        return String.join(".", parts.subList(i, parts.size() - 1));
-    }
-
-    private static Path findJavaBase(Path root) throws IOException {
-        Path direct;
-        direct = root.resolve("docs").resolve("api").resolve("java.base");
-        if (isDirectory(direct)) return direct;
-
-        try (Stream<Path> s = walk(root, 6)) {
-            Optional<Path> found;
-            found = s
-                    .filter(p -> "java.base".equals(p.getFileName().toString()))
-                    .findFirst();
-            return found.orElse(null);
-        }
+        return parent.toString()
+                .replace(FileSystems.getDefault().getSeparator(), ".");
     }
 
     private static String stripHtmlSuffix(String s) {
-        if (s.endsWith(".html")) return s.substring(0, s.length() - 5);
-        return s;
+        return s.endsWith(".html")
+                ? s.substring(0, s.length() - 5)
+                : s;
     }
 
-    // =====================================================================
-    // TEXT UTIL
-    // =====================================================================
-
     private static String excerpt(String text, int start, int end, int radius) {
-        int a;
-        a = Math.max(0, start - radius);
 
-        int b;
-        b = Math.min(text.length(), end + radius);
+        int a = Math.max(0, start - radius);
+        int b = Math.min(text.length(), end + radius);
 
-        String slice;
-        slice = text.substring(a, b);
+        String slice = text.substring(a, b);
 
-        // keep it readable in console
         return slice.replaceAll("\\s+", " ").trim();
     }
 
-    // =====================================================================
-    // OUTPUT
-    // =====================================================================
-
     private static void printResult(AnalysisResult r) {
+
         out.println();
         out.println("Scanned files : " + r.scannedFiles());
         out.println("Matched files : " + r.matchedFiles());
         out.println();
 
         for (PackageResult p : r.packages().values()) {
+
             out.println(p.name());
 
             for (ClassResult c : p.classes().values()) {
+
                 out.println("  " + c.className());
 
                 for (MatchResult m : c.matches()) {

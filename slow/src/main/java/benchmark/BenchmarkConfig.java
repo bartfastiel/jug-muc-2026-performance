@@ -18,6 +18,6 @@ public class BenchmarkConfig {
 
     @Benchmark
     public void runMainProgram() {
-        complexity.fexponential.Main.run(numberOfPersons);
+        complexity.equadratic.Main.run(numberOfPersons);
     }
 }

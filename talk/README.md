@@ -19,16 +19,22 @@
 
 ## großes Bild
 
-* Intro: Performance ist Kaufkriterium
+* Intro: Sind wir ungeduldig geworden?
+  * ChatGPT, TikTok, Youtube-Shorts, Facebook-Reels - ich merke, dass ich selbst ungeduldiger werde
+* Performance ist Kaufkriterium
 * Javadoc (dann Überleitung via "was bedeutet das eigentlich?")
 * Würze: Tiersammelkarten
 * Big-O
-* Unzulänglichkeit von Big-O für konkretes Projekt
+* Konstante Faktoren werden bei Big-O ignoriert (Beispiele)
+* Problem mit Dependencies, Updates
+* Aber: Unzulänglichkeit von Big-O für konkretes Projekt (Auto-Annonce: Je mehr Gas umso schneller, aber wie schnell ist das Auto wirklich? - Oder Arbeitszeugnis: "Er arbeitete" ohne Adjektiv)
 * Performance vereinbaren als Zeit in Sekunden (nicht Komplexität) - für App, nicht für Library
   * Würze = OData Verkehrsbetriebe
 * Clean Code vs Performance - Dreamteam oder Widersacher? (Überleitung: deshalb nur dort optimieren, wo es wirklich nötig ist)
-* Performance-Ideen (Caching, Dinge vorbereiten, return early, Datenformate, Parallelisieren)
+  * Würze: Klettergurt: Komfortabel gibt es günstig, nur wenn Du das Gewicht reduzieren musst, wird es teuer (und weniger komfortabel)
+* Performance-Ideen (Caching, Dinge vorbereiten, return early, Datenformate am Beispiel Versicherungs-HTML, Parallelisieren)
 * Betriebswirtschaftliche Aspekte (Kundenzufriedenheit, Maintainability, Opportunity Cost, Horizontal Skalieren=Komplexität)
+  * Würze: uCORE 4000€ Server mit DB und konstanten Abfragen => 40€ Raspberry PI
 * Performance-Cycle: Messen, Analysieren, Optimieren, Messen
 * Sind die anderen Schuld? Beispiel: Spring Boot, Java Melody
   * (Überleitung: wenn es an dir liegt: IntelliJ Ultimate Profiler)
@@ -281,4 +287,13 @@
 
 * Premature Optimization Is The Root Of All Evil
   * aber das heißt nicht, dass Du erst eine fertige App beim Kunden brauchst
-  * 
+
+* Bei HTML-Ladezeiten: nicht "time to first byte", sondern "time to interactive" (Google SRE)
+
+* Tipp: fange bereits an zu verarbeiten, wenn Dir die ersten Daten vorliegen (im Stream verarbeiten, nicht erst warten bis die ganze Datei da ist)
+
+
+https://apidia.net/java/OpenJDK/25/?pck=java.base-all-classes&cls=java.util.LinkedHashSet (APIdia von Stefan)
+```
+Like HashSet, it provides constant-time performance for the basic operations (add, contains and remove), assuming the hash function disperses elements properly among the buckets. Performance is likely to be just slightly below that of HashSet, due to the added expense of maintaining the linked list, with one exception: Iteration over a LinkedHashSet requires time proportional to the size of the set, regardless of its capacity. Iteration over a HashSet is likely to be more expensive, requiring time proportional to its capacity.
+```

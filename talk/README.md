@@ -17,35 +17,12 @@
 * Lösung sind 3,5 Sekunden
 * Entsprechend Skala von 100 Minuten bis 1 Millisekunde
 
+
+> zwei ferngesteuerte Autos fahren im Raum zwischen den Stühlen herum. Eines langsam, das andere schnell
+
 ## großes Bild
 
-* Intro: Sind wir ungeduldig geworden?
-  * ChatGPT, TikTok, Youtube-Shorts, Facebook-Reels - ich merke, dass ich selbst ungeduldiger werde
-* Performance ist Kaufkriterium
-* Javadoc (dann Überleitung via "was bedeutet das eigentlich?")
-* Würze: Tiersammelkarten
-* Big-O
-* Konstante Faktoren werden bei Big-O ignoriert (Beispiele)
-* Problem mit Dependencies, Updates
-* Aber: Unzulänglichkeit von Big-O für konkretes Projekt (Auto-Annonce: Je mehr Gas umso schneller, aber wie schnell ist das Auto wirklich? - Oder Arbeitszeugnis: "Er arbeitete" ohne Adjektiv)
-* Performance vereinbaren als Zeit in Sekunden (nicht Komplexität) - für App, nicht für Library
-  * Würze = OData Verkehrsbetriebe
-* Clean Code vs Performance - Dreamteam oder Widersacher? (Überleitung: deshalb nur dort optimieren, wo es wirklich nötig ist)
-  * Würze: Klettergurt: Komfortabel gibt es günstig, nur wenn Du das Gewicht reduzieren musst, wird es teuer (und weniger komfortabel)
-* Performance-Ideen (Caching, Dinge vorbereiten, return early, Datenformate am Beispiel Versicherungs-HTML, Parallelisieren)
-* Betriebswirtschaftliche Aspekte (Kundenzufriedenheit, Maintainability, Opportunity Cost, Horizontal Skalieren=Komplexität)
-  * Würze: uCORE 4000€ Server mit DB und konstanten Abfragen => 40€ Raspberry PI
-* Performance-Cycle: Messen, Analysieren, Optimieren, Messen
-* Sind die anderen Schuld? Beispiel: Spring Boot, Java Melody
-  * (Überleitung: wenn es an dir liegt: IntelliJ Ultimate Profiler)
-  * Würze: Welche IDE nutzt Du?
-* Aufgabe
-* Konzepte auch auf Python übertragbar
- 
-
-## live
-
-[zwei ferngesteuerte Autos fahren im Raum zwischen den Stühlen herum. Eines langsam, das andere schnell]
+### Intro: Was würdest Du kaufen?
 
 * Welches ferngesteuerte Auto kaufst Du Dir?
 * Welches Handy hast Du Dir ausgesucht?
@@ -56,12 +33,12 @@
 * Das ferngesteuerte Auto, das 30 km/h fährt
   * und bei dem Du den Kindern sagen musst, dass sie sich nicht blitzen lassen dürfen.
 
-* Die Geschwindigkeit ist Kaufkriterium
+### Performance ist Kaufkriterium
 
 * In einem Artikel von 2017 schreibt Google, dass Du um 32% mehr Leute auf Deiner mobilen Seite während des Ladens verlierst, wenn sich die Ladezeit von 1s auf 3s erhöht [Quelle](https://www.thinkwithgoogle.com/intl/en-emea/marketing-strategies/app-and-mobile/find-out-how-you-stack-new-industry-benchmarks-mobile-page-speed/)
 * Ein Report von Akamai behauptet, die Onlinestores mit 2.7s Ladezeit auf Mobilgeräten hätten die höchsten Konversionsraten, Seiten mit 2.8s Ladezeit hätten 1% weniger Konversionen,
   * Seiten mit 3.0s Ladezeit haben 2.4% weniger Konversionsrate [Quelle](https://www.igds.org/fileadmin/uploads/igds/Documents/Research_Reports/2017/akamai-state-of-online-retail-performance-spring-2017.pdf?utm_source=chatgpt.com)
- 
+
 * Und wenn Du zum Beispiel eure Inhouse-Anwendung zur Zeiterfassung umschreibst
   * weil der 4 Sekunden Splash-Screen alle Kollegen nervt
   * und Deine 100 Kollegen morgens, mittags zweimal und abends sich Zeit sparen
@@ -99,7 +76,73 @@
   * Spieleentwicklung
   * Hochfrequenzhandel
 
-* Und es gibt Bereiche da wird es als "nicht-funktionale Anforderung" abgetan
+### Javadoc (dann Überleitung via "was bedeutet das eigentlich?")
+> Würze: Tiersammelkarten
+
+* Was bedeutet schnell?
+* Wie können wir Geschwindigkeit angeben?
+
+* schauen wir uns die übliche API-Dokumentation an [Apidia opencsv](https://apidia.net/mvn/com.opencsv/opencsv/5.9/?pck=com.opencsv.bean&cls=.CsvToBeanBuilder#build-)
+  * Da wird die Funktion beschrieben
+  * was kommt raus, was geht rein
+  * mit welchen Fehlerzuständen muss ich rechnen
+  * und wie sicher, wie schnell ist das?
+* Es ist nicht angegeben, weil es
+  * uns meist zum Glück nicht interessiert
+  * weil wir schnelle Hardware haben
+  * weil es auch einfach schwer anzugeben ist
+    * je nach Computer
+    * je nach Eingabedaten
+    * je nach Betriebssystem
+    * je nach JVM
+
+### Big-O
+
+* Deshalb in Informatik Konzept von "Big-O-Notation"
+  * Wir sagen, inwiefern die Laufzeit von der Größe der Eingabedaten abhängt
+  * Braucht ein Programm immer gleich viel Zeit?
+    * O(1) - konstante Zeit
+    * => vorzeigen mit graph-tool
+  * oder braucht es bei doppelt so vielen Daten auch doppelt so viel Zeit?
+    * O(n) - lineare Zeit
+    * => vorzeigen mit graph-tool
+  * Genauer gesagt:
+    * Finden wir
+      * eine Horizontale,
+      * eine Gerade,
+      * eine Parabel,
+      * eine Exponentialfunktion,
+    * Unter der die Laufzeit immer liegt, egal wie groß die Datenmenge auch sein mag?
+      * => Komplexitat
+  * Genauer gesagt: Zeitkomplexität (über Speicher-Komplexität heute nicht)
+
+> Konstante Faktoren werden bei Big-O ignoriert (Beispiele)
+
+* Deutlich sichtbar bei Linear:
+* Keine Angabe darüber, wie viele Dinge in der Schleife passieren
+* Also macht es auch nicht sinn zu unterscheiden wie viele Schleifen man hat
+
+### Problem mit Dependencies, Updates
+
+* Hat Deine konkrete Methode O(n) Komplexität?
+  * Wenn du das herausfinden willst
+  * Musst Du auch jeden Code kennen, dem Du Deinen Input weitergibst
+
+* Es ist wichtig Verlässlichkeit zu vereinbaren
+* Aber in der Methoden-Signatur stehen nur "funktionale" Aspekte
+  * "Korrektheit"
+* Nicht aber "nicht-funktionale" Aspekte
+  * "Sicherheit"
+  * "Clean Code"
+  * "Performance"
+
+### Unzulänglichkeit von Big-O für konkretes Projekt (Auto-Annonce: Je mehr Gas umso schneller, aber wie schnell ist das Auto wirklich? - Oder Arbeitszeugnis: "Er arbeitete" ohne Adjektiv)
+
+> Comic "Kind Zimmer aufräumen"
+
+### Performance vereinbaren als Zeit in Sekunden (nicht Komplexität) - für App, nicht für Library
+
+
 * Als ich für eine große Versicherung während meiner Ausbildung vor über 20 Jahren Java-Programme geschrieben habe
   * da stand in den teils 100-Seitigen Lasten- und Pflichtenheften
   * oft nur von Features, Architektur, Tests
@@ -112,27 +155,44 @@
   * nichts über Clean Code
   * nichts über Performance
 
-* Oder schauen wir uns die übliche API-Dokumentation an [Apidia opencsv](https://apidia.net/mvn/com.opencsv/opencsv/5.9/?pck=com.opencsv.bean&cls=.CsvToBeanBuilder#build-)
-  * Da wird die Funktion beschrieben
-  * was kommt raus, was geht rein
-  * mit welchen Fehlerzuständen muss ich rechnen
-  * und wie sicher, wie schnell ist das?
-* Es ist nicht angegeben, weil es 
-  * uns meist zum Glück nicht interessiert
-  * weil wir schnelle Hardware haben
-  * weil es auch einfach schwer anzugeben ist
-    * je nach Computer
-    * je nach Eingabedaten
-    * je nach Betriebssystem
-    * je nach JVM
 
-> Comic "Kind Zimmer aufräumen"
+> Würze = OData Verkehrsbetriebe
 
-* Im konkreten Projekt jedoch, ist die Performance entscheidend
-* Die Entwickler von opencsv wissen nicht, wie ihre Bibliothek eingesetzt wird
-* Aber Du weißt, dass Dein Programm voraussichtlich mit X Anwendern, auf Hardware Y, Datenmenge Z verarbeiten soll
-* Deshalb schreibe ich in Projekte heute Anforderungen an die Performance fest
-* Bei jedem Auftrag nach außen
+* Als ich für Verkehrsbetrieb gearbeitet habe
+  * brauchten wir Schnittstelle zum SAP-System
+  * alles wurde vereinbart:
+    * Requests, Responses, Fehlercodes, usw
+    * Kein REST (das fanden sie "überholt"), sondern OData
+  * nach Wochen stellten sie uns die Schnittstelle zur Verfügung
+  * und wir machen Abfrage
+    * keine Antwort
+    * also Timeout auf 5 Minuten gesetzt
+    * keine Antwort
+  * nachgefragt
+    * doch sollte funktionieren
+    * irgendwann herausgefunden: es gab keine Antwort, weil die Antwortzeit 60 Minuten betrug
+  * wir hatten vergessen, eine Antwortzeit zu vereinbaren
+  * SAP: Klar, wer einmal einen Report braucht, kann so eine Anfrage machen und sich derweilen einen Kaffee holen
+  * aber wir haben die Infos gebraucht um unsere API-Responses zu generieren
+  * also:
+    * Hintergrundprozess fragt stündlich die Daten ab
+    * Ergebnis cachen wir im Arbeitsspeicher (und zur Sicherheit für den Neustart in unserer Datenbank)
+    * und liefern es selbst innerhalb von 50ms aus
+  * Und als sich herumgesprochen hat, dass wir diese Daten so schnell liefern können
+  * haben sich die anderen Abteilungen die Daten lieber von uns geholt als von der Quelle
+  * also haben wir die Daten stündlich abgefragt, im Arbeitsspeicher und in der Datenbank gecacht und selbst innerhalb von 50ms ausgeliefert
+  * und als sich herumgesprochen hat, dass wir die Daten so schnell liefern können, haben sich die anderen Abteilungen lieber von uns geholt als von der Quelle
+
+* Wir sehen wie wichtig es ist, nicht nur die funktionalen Anforderungen zu vereinbaren, sondern auch die nicht-funktionalen Anforderungen
+  * In manchen meiner Jobs: mehr Lastenhefte und Pflichtenhefte
+  * 100 Seiten über die Features
+  * Wenn Du in so einer Situation bist:
+    * Definiere in einem kurzen Nebensatz die Performance-Anforderung
+    * Ganz konkret: z.B. auf MacBook Air 2020, mit 1000 Datensätzen, soll die Seite innerhalb von 2 Sekunden laden
+    * Ein Satz - und sofort Klarheit
+
+> Folie Scrum Board mit Definition of Done
+
 * Und in jedem Scrum-Team
   * Empfehlung: nicht pro User-Story, sonder übergreifend
   * als "Definition of Done"
@@ -168,59 +228,8 @@
     * also besser ein Wert, der plötzliche Verschlechterungen gegenüber dem Durchschnitt der letzten 30 Tage erkennt
       * auf das Messen von Zeiten gehen wir später noch ein
 
-* Dazu noch eine Anekdote:
-  * In einem Projekt für die öffentlichen Verkehrsmittel
-    * war ich im Datenmanagement-Team (Telematik, IoT)
-    * wir hatten eine riesige Datenbank, aber schnelle SQL-Statements und saubere Java-Architektur
-    * dann haben wir einmal Daten aus dem SAP-System benötigt
-    * 1000 Fahrzeugdaten, 2-3 MB groß, nichts ungewöhnliches
-    * für unsere Berechnungen und für weitere Fremdsysteme
-  * also: Schnittstelle vereinbart
-    * War odata, weil unser SQL mit REST-API-Ansatz angeblich zu old-school war
-    * alle funktionalen Anforderungen abgestimmt
-    * als es fertig war, machen wir den Zugriff, aber der Server antwortet nicht
-    * also haben wir den Timeout auf 5 Minuten gesetzt
-    * wir schicken den Request ab
-    * keine Antwort
-    * also melden wir den Bug und bekommen als Antwort
-      * es handelt sich nicht um einen Bug
-      * sondern wir müssen den Timeout auf 60 Minuten setzen
-    * 60 Minuten für 3 MB Daten
-    * wir hatten vergessen eine Antwortzeit zu vereinbaren
-    * Klar, wer einmal einen Report braucht, kann so eine Anfrage machen und sich derweilen einen Kaffee holen
-    * aber wir haben die Infos gebraucht um unsere API-Responses zu generieren
-    * also:
-      * Hintergrundprozess fragt stündlich die Daten ab
-      * Ergebnis cachen wir im Arbeitsspeicher (und zur Sicherheit für den Neustart in unserer Datenbank)
-      * und liefern es selbst innerhalb von 50ms aus
-    * Und als sich herumgesprochen hat, dass wir diese Daten so schnell liefern können
-    * haben sich die anderen Abteilungen die Daten lieber von uns geholt als von der Quelle
-    * :)
+### Clean Code vs Performance - Dreamteam oder Widersacher? (Überleitung: deshalb nur dort optimieren, wo es wirklich nötig ist)
 
-* Genug der Theorie für den Moment
-* Wir schauen uns eine konkrete Aufgabenstellung für ein Java-Programm an
-> Ausgehend von der Eingabedatei mit persönlichen Daten, finde den Tag im Jahr, an dem die meisten Menschen Geburtstag haben.
-> Gib den Tag und die Anzahl der Personen aus, die an diesem Tag Geburtstag haben.
-> Die Eingabedatei ist eine komma-separierte Textdatei mit Fix-Breite-Spalten. Zeilen sind mit \n getrennt. Spalten sind mit ; getrennt.
-> Es gibt kein Escaping oder Quoting. Datumswerte sind im Format 'YYYY-MM-DD'.
-> Die Eingabedatei ist gezippt.
-
-## Ideen / noch einzubauen
-
-* Java-Melody
-* Array of Structures vs Structure of Arrays
-* JMeter
-* Mein Graph-Tool zur Visualisierung On²
-* Wo in JavaDoc steht etwas über Performance?
-* Es geht darum die Reibung zu minimieren - also versuche nicht "Performance einzubauen", sondern "Bottlenecks zu entfernen"
-* JMH - Java Microbenchmark Harness
-* Zitat Linus Torvalds: "Some people say you should not micro optimize, but if what you love is micro optimization, that is what you should do." [Quelle](hhttps://youtube.com/shorts/Z65bQJKsnLk?si=b3IP8RDA7015u_zJ)
-* Caching
-* Tests sind wichtig: so kann man refactoren
-* Wenn Du mehr Geld für ein Auto ausgibst, ist es nicht unbedingt komfortabler (z.B. Formel-1)
-* Warum Java?
-  * Man kann schnell schreiben, die Sprache ermöglicht es (Arrays bilden Speicher-Architektur ab, usw)
-  * Aber Du musst es nicht tun (Garbage Collector, usw)
 * Clean Code vs Performance
   * letztendlich kaufmännische Entscheidung
     * Geld ausgeben für Entwicklerzeit
@@ -235,6 +244,8 @@
 * Clean Code hat gute Prinzipien
   * KISS
     * Oft Auch gut für Performance (bis zu gewissem Grad, dann erfordert Performance-Optimierung oft komplexeren Code)
+    > Würze: Klettergurt: Komfortabel gibt es günstig, nur wenn Du das Gewicht reduzieren musst, wird es teuer (und weniger komfortabel)
+    * Wenn Du mehr Geld für ein Auto ausgibst, ist es nicht unbedingt komfortabler (z.B. Formel-1)
   * YAGNI
     * Lass unnötige Features weg => gut für Performance
   * DRY
@@ -249,49 +260,132 @@
   * SFC
     * Serve from cache, not from source
 
-* Performance-Cycle
-  * Messen (vorher)
-  * Analysieren (Bottlenecks finden)
-  * Optimieren
-  * Messen (nachher)
-    * So viel schneller, dass es sich gelohnt hat?
-    * Gegebenfalls Rollback, andere Optimierung versuchen
-  * Noch zu langsam?
-    * Wiederhole den Zyklus
+### Performance-Ideen (Caching, Dinge vorbereiten, return early, Datenformate am Beispiel Versicherungs-HTML, Parallelisieren)
 
-* "Measure, don’t guess" – McConnell / allgemeiner Performance-Grundsatz
-* "Premature optimization is the root of all evil." – Donald Knuth
-* "Make it work, make it right, make it fast." – Kent Beck bzw Kernighan/Pike
-* End-to-End-Latency Thinking (Google SRE, Brendan Gregg)
-* Brendan Gregg – USE / RED Method https://pagertree.com/learn/devops/what-is-observability/use-and-red-method
+* Caching
+  * Zusatzaufwand
+  * bringt oft Hauptgewinn
 
-* Am Anfang meiner Karriere Java Struts Webanwendung für Versicherung
-  * Ich wollte es 120% gut machen
-  * Habe den Code super elegant geschrieben
-  * Sauber eingerückt
-  * Das Laden der Webseite wurde langsam, ich suche nach dem Bottleneck
+* Wähle das beste Datenformat
+  * JSON/XML einfach zu lesen, gut mit Schemas
+    * In der Regel durch die Größe eher langsam
+  * CSV kleiner, aber nicht verschachtelt
+  * Binärformate wie Protobuf aufwendiger, aber deutlich schneller
+
+> Würze HTML-Spaces
+* Als ich vor 20 Jahren am Anfang meiner Karriere Java Struts Webanwendung für Versicherung geschrieben habe
+  * da wollte ich es 120% gut machen
+  * habe den Code super elegant geschrieben
+  * sauber eingerückt
+  * das Laden der Webseite wurde langsam, ich suche nach dem Bottleneck
     * Das HTML-File war gigantisch!
     * 95% Whitespaces!
     * Ich habe dann die spitzen Klammern der Tags erst in der neuen Zeile gesetzt
     * Performance-Problem: gelöst (x-fach schneller)
 
-* Kosten der entgangenen Chancen, Opportunity Cost
-
-* Computer werden schneller - Dein Programm wird automatisch günstiger zu betreiben
-
-* TikTok, Youtube-Shorts, Facebook-Reels - ich merke, dass ich selbst ungeduldiger werde
-
-* Monitoring (java flight recorder, Grafana - talk of last week)
-
-* Machs einmal von Hand (wie Karten-Sortieraufgabe für Gruppe von Azubis in Schweiz)
-
-* Premature Optimization Is The Root Of All Evil
-  * aber das heißt nicht, dass Du erst eine fertige App beim Kunden brauchst
-
-* Bei HTML-Ladezeiten: nicht "time to first byte", sondern "time to interactive" (Google SRE)
+* Mein Tipp:
+  * Nutze etwas wie JSON
+  * Eventuell Structure of Arrays statt Array of Structures
+  * dann: Komprimieren
+  * => klein, aber prinzipiell noch menschenlesbar
+  * nicht Unmengen an Objekten und Garbage Collection
 
 * Tipp: fange bereits an zu verarbeiten, wenn Dir die ersten Daten vorliegen (im Stream verarbeiten, nicht erst warten bis die ganze Datei da ist)
 
+* Machs einmal von Hand (wie Karten-Sortieraufgabe für Gruppe von Azubis in Schweiz)
+
+* Nutze eine gute Programmiersprache
+  * z.B. Perl, Python oder Visual Basic - wenn Dir die Performance egal ist
+  * oder aber Assembler, Rust, C oder C++ - wenn Du Performance um jeden Preis brauchst
+  * oder Java, wenn Du Dich auf die Business-Logik konzentrieren willst, aber trotzdem die Möglichkeit für sehr gute Performance haben willst
+
+### Betriebswirtschaftliche Aspekte (Kundenzufriedenheit, Maintainability, Opportunity Cost, Horizontal Skalieren=Komplexität)
+> Würze: uCORE 4000€ Server mit DB und konstanten Abfragen => 40€ Raspberry PI
+
+
+* Es geht darum die Reibung zu minimieren - also versuche nicht "Performance einzubauen", sondern "Bottlenecks zu entfernen"
+
+> Würze: Klettergurt: Komfortabel gibt es günstig, nur wenn Du das Gewicht reduzieren musst, wird es teuer (und weniger komfortabel)
+
+* Computer werden schneller - Dein Programm wird automatisch günstiger zu betreiben
+
+### Performance-Cycle: Messen, Analysieren, Optimieren, Messen
+
+* Wir sollten nur dann von Clean, Lesbarem Code abweichen, wenn es ein Problem gibt
+* Premature Optimization Is The Root Of All Evil
+  * Also nicht optimieren, bevor es ein Problem gibt
+  * Aber das Problem darfst Du gerne schon früh im Prozess erkennen
+  * Wenn Du das Problem in der Analysephase erkennst
+    * brauchst Du nicht erst eine fertige App beim Kunden
+  * Trotzdem: verifiziere kurz (POC oder Berechnung), dass es wirklich ein Problem ist
+
+* Deshalb:
+  * Gibt es ein Problem? => Messen
+    * z.B. mit Java Microbenchmark Harness (JMH) oder currentTimeMillis
+    * Bei HTML-Ladezeiten: nicht "time to first byte", sondern "time to interactive" (Google SRE)
+  * Wo ist das Problem? => Analysieren
+    * z.B. mit IntelliJ Ultimate Profiler
+  * Wie lösen wir das Problem? => Optimieren
+    * am besten mit Unit Tests
+  * Hat es geholfen? => Messen
+    * Falls nein, Rollback, andere Optimierung versuchen
+  * Und gibt es jetzt trotzdem immer noch ein Problem?
+
+* Wir suchen das Bottleneck
+* Die eine Stelle, die den schlimmsten Effekt hat
+* Oder zumindest eine Stelle, wo wir mit wenig Aufwand viel gewinnen
+
+### Sind die anderen Schuld? Beispiel: Spring Boot, Java Melody
+
+* Versuche möglichst schnell zu wissen wo das Problem liegt
+* Es muss nicht immer an Dir liegen!
+* Deshalb:
+  * Nutze Tools wie z.B. Java Melody
+  * Beispielprogramm: JUG-Forum starten (langsam)
+  * Bevor wir in den Code schauen: sind es überhaupt wir, die das Problem verursachen?
+  * In pom.xml: javamelody
+  * neu starten
+  * neu seite laden
+  * immer noch langsam :)
+  * Aber: in Java Melody
+    * Detailanalyse
+    * SQL-Statements
+    * Deshalb: Custom SQL-Query
+
+* Mehr Last gefällig? JMeter
+
+### Aufgabe
+
+* Genug der Theorie für den Moment
+* Wir schauen uns eine konkrete Aufgabenstellung für ein Java-Programm an
+> Ausgehend von der Eingabedatei mit persönlichen Daten, finde den Tag im Jahr, an dem die meisten Menschen Geburtstag haben.
+> Gib den Tag und die Anzahl der Personen aus, die an diesem Tag Geburtstag haben.
+> Die Eingabedatei ist eine komma-separierte Textdatei mit Fix-Breite-Spalten. Zeilen sind mit \n getrennt. Spalten sind mit ; getrennt.
+> Es gibt kein Escaping oder Quoting. Datumswerte sind im Format 'YYYY-MM-DD'.
+> Die Eingabedatei ist gezippt.
+
+> (Überleitung: wenn es an dir liegt: IntelliJ Ultimate Profiler)
+> Würze: Welche IDE nutzt Du?
+
+* Es gibt viele Tools: Java flight recorder, Spring Acutator, Grafana (letzte Woche)
+* Wir nutzen:
+  * Messen: JMH - Java Microbenchmark Harness
+  * Analysieren: IntelliJ Ultimate Profiler
+
+### Konzepte auch auf Python übertragbar
+### Schlussworte
+
+* Zitat Linus Torvalds: "Some people say you should not micro optimize, but if what you love is micro optimization, that is what you should do." [Quelle](hhttps://youtube.com/shorts/Z65bQJKsnLk?si=b3IP8RDA7015u_zJ)
+
+* Keine Ode an Performance
+* Sondern Toolset um nicht nur Featurereiche
+* sondern auch nützliche Anwendungen
+ 
+# Quellen, Nachweise, Ideen
+
+* "Measure, don’t guess" – McConnell / allgemeiner Performance-Grundsatz
+* "Premature optimization is the root of all evil." – Donald Knuth
+* "Make it work, make it right, make it fast." – Kent Beck bzw Kernighan/Pike
 
 https://apidia.net/java/OpenJDK/25/?pck=java.base-all-classes&cls=java.util.LinkedHashSet (APIdia von Stefan)
 ```

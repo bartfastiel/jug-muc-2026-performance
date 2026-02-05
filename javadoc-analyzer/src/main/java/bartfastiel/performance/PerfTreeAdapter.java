@@ -9,6 +9,11 @@ public final class PerfTreeAdapter {
 
     private PerfTreeAdapter() {}
 
+    private record HitInfo(
+            int hits,
+            List<String> excerpts
+    ) {}
+
     public static JavadocPackageTreeView.Node buildTree(
             Path javadocRoot,
             JavadocPerfScan.AnalysisResult result
@@ -50,14 +55,23 @@ public final class PerfTreeAdapter {
         }
 
         // 2) hit map
-        Map<String, Integer> hitMap = new HashMap<>();
+        Map<String, HitInfo> hitMap = new HashMap<>();
 
         for (var pkg : result.packages().values()) {
             for (var cls : pkg.classes().values()) {
 
+                int hits;
+                hits = cls.matches().size();
+
+                List<String> excerpts;
+                excerpts = cls.matches().stream()
+                        .limit(3)
+                        .map(JavadocPerfScan.MatchResult::excerpt)
+                        .toList();
+
                 hitMap.put(
                         pkg.name() + "." + cls.className(),
-                        cls.matches().size()
+                        new HitInfo(hits, excerpts)
                 );
             }
         }
@@ -73,11 +87,17 @@ public final class PerfTreeAdapter {
 
     private static void assignHits(
             JavadocPackageTreeView.Node n,
-            Map<String, Integer> hitMap
+            Map<String, HitInfo> hitMap
     ) {
 
         if (n.kind == JavadocPackageTreeView.NodeKind.TYPE) {
-            n.hitsLocal = hitMap.getOrDefault(n.fullName, 0);
+            HitInfo info;
+            info = hitMap.get(n.fullName);
+
+            if (info != null) {
+                n.hitsLocal = info.hits;
+                n.excerpts.addAll(info.excerpts);
+            }
         }
 
         for (var c : n.children) {
@@ -109,7 +129,7 @@ public final class PerfTreeAdapter {
 
         for (String part : parts) {
 
-            if (sb.length() > 0) sb.append(".");
+            if (!sb.isEmpty()) sb.append(".");
             sb.append(part);
 
             String full = sb.toString();

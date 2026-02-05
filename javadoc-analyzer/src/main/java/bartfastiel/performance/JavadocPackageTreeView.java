@@ -82,6 +82,13 @@ public final class JavadocPackageTreeView extends JComponent {
                         ? "Package"
                         : "Type";
 
+        String excerptHtml =
+                hit.excerpts.isEmpty()
+                        ? ""
+                        : "<br><br><div style='font-family:monospace;font-size:12px;color:#ccc;'>"
+                        + String.join("<br>", hit.excerpts)
+                        + "</div>";
+
         setToolTipText("""
 <html>
 <div style="background:#111;
@@ -103,7 +110,8 @@ public final class JavadocPackageTreeView extends JComponent {
 
   <div style="font-size:13px;">
     hitsLocal=%d<br>
-    hitsAgg=%d
+    hitsAgg=%d<br>
+    %s
   </div>
 
 </div>
@@ -112,10 +120,10 @@ public final class JavadocPackageTreeView extends JComponent {
                 hit.fullName,
                 hit.kind,
                 hit.hitsLocal,
-                hit.hitsAgg
+                hit.hitsAgg,
+                excerptHtml
         ));
         hoveredNode = hit;
-
       }
     });
 

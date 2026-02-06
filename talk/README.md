@@ -20,7 +20,7 @@
 
 > zwei ferngesteuerte Autos fahren im Raum zwischen den Stühlen herum. Eines langsam, das andere schnell
 
-## großes Bild
+## Vortrag
 
 ### Intro: Was würdest Du kaufen?
 
@@ -38,6 +38,7 @@
 * In einem Artikel von 2017 schreibt Google, dass Du um 32% mehr Leute auf Deiner mobilen Seite während des Ladens verlierst, wenn sich die Ladezeit von 1s auf 3s erhöht [Quelle](https://www.thinkwithgoogle.com/intl/en-emea/marketing-strategies/app-and-mobile/find-out-how-you-stack-new-industry-benchmarks-mobile-page-speed/)
 * Ein Report von Akamai behauptet, die Onlinestores mit 2.7s Ladezeit auf Mobilgeräten hätten die höchsten Konversionsraten, Seiten mit 2.8s Ladezeit hätten 1% weniger Konversionen,
   * Seiten mit 3.0s Ladezeit haben 2.4% weniger Konversionsrate [Quelle](https://www.igds.org/fileadmin/uploads/igds/Documents/Research_Reports/2017/akamai-state-of-online-retail-performance-spring-2017.pdf?utm_source=chatgpt.com)
+* Mal ganz ehrlich: wieviel Erfolg ChatGPT, wenn 1m Ladezeit?
 
 * Und wenn Du zum Beispiel eure Inhouse-Anwendung zur Zeiterfassung umschreibst
   * weil der 4 Sekunden Splash-Screen alle Kollegen nervt
@@ -96,6 +97,12 @@
     * je nach Betriebssystem
     * je nach JVM
 
+> Würze: Übersicht JavaDoc Performanceangaben
+
+* In der offiziellen JavaDoc
+* Hauptsächlich bei Collections
+* Angaben wie "constant time", "linear time", "logarithmic time"
+
 ### Big-O
 
 * Deshalb in Informatik Konzept von "Big-O-Notation"
@@ -116,11 +123,11 @@
       * => Komplexitat
   * Genauer gesagt: Zeitkomplexität (über Speicher-Komplexität heute nicht)
 
-> Konstante Faktoren werden bei Big-O ignoriert (Beispiele)
-
-* Deutlich sichtbar bei Linear:
-* Keine Angabe darüber, wie viele Dinge in der Schleife passieren
-* Also macht es auch nicht sinn zu unterscheiden wie viele Schleifen man hat
+* Konstante Faktoren werden bei Big-O ignoriert
+  * in linear: in schleife "do something" 3x drinnen
+  * in linear: drei schleifen je mit einmal "do something"
+  * und wenn wir innerhalb von "do something" in Zukunft drei Dinge tun?
+  * Alles in der theoretischen Welt von Big-O: O(n)
 
 ### Problem mit Dependencies, Updates
 
@@ -135,13 +142,13 @@
   * "Sicherheit"
   * "Clean Code"
   * "Performance"
+* Mit Dependencies kann Dein Code jederzeit langsam werden
 
 ### Unzulänglichkeit von Big-O für konkretes Projekt (Auto-Annonce: Je mehr Gas umso schneller, aber wie schnell ist das Auto wirklich? - Oder Arbeitszeugnis: "Er arbeitete" ohne Adjektiv)
 
 > Comic "Kind Zimmer aufräumen"
 
 ### Performance vereinbaren als Zeit in Sekunden (nicht Komplexität) - für App, nicht für Library
-
 
 * Als ich für eine große Versicherung während meiner Ausbildung vor über 20 Jahren Java-Programme geschrieben habe
   * da stand in den teils 100-Seitigen Lasten- und Pflichtenheften
@@ -154,7 +161,6 @@
   * nichts über Sicherheit
   * nichts über Clean Code
   * nichts über Performance
-
 
 > Würze = OData Verkehrsbetriebe
 
@@ -241,26 +247,10 @@
 * Klettergurt:
   * Komfortabel gibt es günstig
   * Nur wenn Du das Gewicht reduzieren musst, wird es teuer (und weniger komfortabel)
-* Clean Code hat gute Prinzipien
-  * KISS
-    * Oft Auch gut für Performance (bis zu gewissem Grad, dann erfordert Performance-Optimierung oft komplexeren Code)
-    > Würze: Klettergurt: Komfortabel gibt es günstig, nur wenn Du das Gewicht reduzieren musst, wird es teuer (und weniger komfortabel)
-    * Wenn Du mehr Geld für ein Auto ausgibst, ist es nicht unbedingt komfortabler (z.B. Formel-1)
-  * YAGNI
-    * Lass unnötige Features weg => gut für Performance
-  * DRY
-    * Vermeide Redundanz => gut für Wartbarkeit, aber nicht immer für Performance
-* Für Performance sollten wir diese einführen:
-  * POITROAE
-    * Premature Optimization Is The Root Of All Evil
-  * YNNIYHD
-    * You never know, if you have dependencies
-  * RAFAYC
-    * Return as fast as you can
-  * SFC
-    * Serve from cache, not from source
 
 ### Performance-Ideen (Caching, Dinge vorbereiten, return early, Datenformate am Beispiel Versicherungs-HTML, Parallelisieren)
+
+> Folien mit Helden
 
 * Caching
   * Zusatzaufwand
@@ -303,14 +293,13 @@
   * oder aber Assembler, Rust, C oder C++ - wenn Du Performance um jeden Preis brauchst
   * oder Java, wenn Du Dich auf die Business-Logik konzentrieren willst, aber trotzdem die Möglichkeit für sehr gute Performance haben willst
 
+> Würze: Klettergurt: Komfortabel gibt es günstig, nur wenn Du das Gewicht reduzieren musst, wird es teuer (und weniger komfortabel)
+
 ### Betriebswirtschaftliche Aspekte (Kundenzufriedenheit, Maintainability, Opportunity Cost, Horizontal Skalieren=Komplexität)
+> Würze: Comic "Boss zuckt nur bei Cloud-Kosten"
 > Würze: uCORE 4000€ Server mit DB und konstanten Abfragen => 40€ Raspberry PI
 
-* Zitat Linus Torvalds: "Some people say you should not micro optimize, but if what you love is micro optimization, that is what you should do." [Quelle](hhttps://youtube.com/shorts/Z65bQJKsnLk?si=b3IP8RDA7015u_zJ)
-
 * Es geht darum die Reibung zu minimieren - also versuche nicht "Performance einzubauen", sondern "Bottlenecks zu entfernen"
-
-> Würze: Klettergurt: Komfortabel gibt es günstig, nur wenn Du das Gewicht reduzieren musst, wird es teuer (und weniger komfortabel)
 
 * Computer werden schneller - Dein Programm wird automatisch günstiger zu betreiben
 
@@ -378,6 +367,9 @@
   * Analysieren: IntelliJ Ultimate Profiler
 
 ### Konzepte auch auf Python übertragbar
+
+### Gewinner küren
+
 ### Schlussworte
 
 * Keine Ode an Performance
@@ -386,6 +378,7 @@
  
 # Quellen, Nachweise, Ideen
 
+* Zitat Linus Torvalds: "Some people say you should not micro optimize, but if what you love is micro optimization, that is what you should do." [Quelle](hhttps://youtube.com/shorts/Z65bQJKsnLk?si=b3IP8RDA7015u_zJ)
 * "Measure, don’t guess" – McConnell / allgemeiner Performance-Grundsatz
 * "Premature optimization is the root of all evil." – Donald Knuth
 * "Make it work, make it right, make it fast." – Kent Beck bzw Kernighan/Pike

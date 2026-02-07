@@ -25,8 +25,8 @@ public class Main {
         println(run(Path.of(INPUT_FILE)));
     }
 
-    public static String run(Path zipFile) throws IOException {
-        var csvFile = extractZipFile(zipFile);
+    public static String run(Path zipPath) throws IOException {
+        var csvFile = extractZipFile(zipPath);
         var persons = parse(csvFile);
         var personWithMostCommonBirthday = findPersonWithMostCommonBirthday(persons);
         return "Most common birthday is " + MonthDay.from(personWithMostCommonBirthday.birthDate) +

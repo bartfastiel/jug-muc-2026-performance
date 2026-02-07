@@ -22,8 +22,8 @@ public class Main {
         println(run(Path.of(INPUT_FILE)));
     }
 
-    public static String run(Path zipFile) throws IOException {
-        var persons = parseZipFile(zipFile);
+    public static String run(Path zipPath) throws IOException {
+        var persons = parseZipFile(zipPath);
         var birthdays = countPartiesForEachDay(persons);
         var mostCommonBirthday = birthdays.entrySet().stream()
                 .max(comparingLong(Map.Entry::getValue))

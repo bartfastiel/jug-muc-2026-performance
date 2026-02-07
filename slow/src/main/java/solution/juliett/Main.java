@@ -17,9 +17,9 @@ public class Main {
         println(run(Path.of(INPUT_FILE)));
     }
 
-    public static String run(Path zipFile) throws IOException {
+    public static String run(Path zipPath) throws IOException {
         var partiesPerDay = new int[12 * 31 + 1];
-        try (var input = new ZipInputStream(newInputStream(zipFile))) {
+        try (var input = new ZipInputStream(newInputStream(zipPath))) {
             var entry = input.getNextEntry();
             if (entry == null) {
                 throw new IOException("No entries found in zip file " + "personal-data.zip");

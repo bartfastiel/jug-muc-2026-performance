@@ -17,8 +17,8 @@ public class OnlyUnzip {
         println(run(Path.of(INPUT_FILE)));
     }
 
-    public static String run(Path zipFile) throws IOException {
-        try (var input = new ZipInputStream(newInputStream(zipFile))) {
+    public static String run(Path zipPath) throws IOException {
+        try (var input = new ZipInputStream(newInputStream(zipPath))) {
             var entry = input.getNextEntry();
             if (entry == null) {
                 throw new IOException("No entries found in zip file " + "personal-data.zip");

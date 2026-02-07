@@ -22,7 +22,7 @@ import static java.util.concurrent.TimeUnit.HOURS;
 public class BenchmarkParallelRunner {
 
     public static final int MIN_PERSONS = 1;
-    public static final int INITIAL_STEP_SIZE = 100;
+    public static final int INITIAL_STEP_SIZE = 1;
     public static final int MAX_PERSONS = 100_000;
     public static final int MIN_THREADS = 1;
     public static final int MAX_THREADS = 10;

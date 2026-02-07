@@ -1,4 +1,6 @@
 import benchmark.BenchmarkParallelRunner;
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import lombok.Getter;
 
 import javax.swing.*;
@@ -7,6 +9,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+
+import static java.lang.IO.println;
 
 void main(String[] args) throws Exception {
     var path = args.length > 0 ? args[0] : "results/measured.csv";
@@ -143,6 +147,14 @@ static final class PlotPanel extends JPanel {
     private final Insets pad = new Insets(40, 80, 60, 30);
     private final Font font = new Font("SansSerif", Font.PLAIN, 16);
 
+    HashMap<String, Integer> headerIndex;
+
+    private final CSVParser parser =
+            new CSVParserBuilder()
+                    .withSeparator(',')
+                    .withQuoteChar('"')
+                    .build();
+
     PlotPanel() {
         setBackground(Color.BLACK);
         setFont(font);
@@ -201,7 +213,7 @@ static final class PlotPanel extends JPanel {
                 g2.setColor(Color.WHITE);
                 g2.drawRect(4, 4, 16, 16);
             }
-            g2.drawString(text, 26,  16);
+            g2.drawString(text, 26, 16);
         }
     }
 
@@ -221,15 +233,25 @@ static final class PlotPanel extends JPanel {
         var f = new File(path);
         long pos = 0;
         var header = false;
+        var content = false;
 
+        errorMessage = "Warte auf CSV-Datei: " + f.getAbsolutePath();
         while (running) {
             try {
                 if (!f.exists()) {
-                    errorMessage = "Warte auf CSV-Datei: " + f.getAbsolutePath();
                     sleep(300);
                     continue;
                 }
-                errorMessage = null;
+                if (!f.canRead()) {
+                    errorMessage = "Keine Leseberechtigung für CSV-Datei";
+                    sleep(300);
+                    continue;
+                }
+                if (!content) {
+                    errorMessage = "CSV-Datei gefunden, warte auf Daten...";
+                } else {
+                    errorMessage = null;
+                }
 
                 try (var raf = new RandomAccessFile(f, "r")) {
                     if (raf.length() < pos) {
@@ -241,9 +263,13 @@ static final class PlotPanel extends JPanel {
                     while ((line = raf.readLine()) != null) {
                         if (!header) {
                             header = true;
+                            readHeader(line);
+                            errorMessage = "Warte auf Daten in CSV-Datei...";
                             continue;
                         }
                         parse(line);
+                        content = true;
+                        errorMessage = null;
                     }
                     pos = raf.getFilePointer();
                 }
@@ -255,21 +281,47 @@ static final class PlotPanel extends JPanel {
         }
     }
 
-    private void parse(String line) {
-        // "slow.BirthdayBenchmark.runMainProgram","ss",1,1,"85,080500",NaN,"ms/op",7
-        var parts = line.split(",");
-        if (parts.length < 9) return;
+    private String[] parseRow(String line) throws IOException {
+        return parser.parseLine(line);
+    }
+
+    private void readHeader(String line) {
         try {
-            var x = Double.parseDouble(parts[9]);
-            var y = Double.parseDouble((parts[4] + "," + parts[5]).replaceAll("\"", "").replace(',', '.'));
-            IO.println("Parsed: x=" + x + ", y=" + y);
+            var row = parseRow(line);
+
+            headerIndex = new HashMap<>();
+            for (int i = 0; i < row.length; i++) {
+                headerIndex.put(row[i], i);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Header kaputt: " + line, e);
+        }
+    }
+
+    private void parse(String line) {
+        try {
+            var row = parseRow(line);
+            if (row == null) return;
+
+            var scoreCol = headerIndex.get("Score");
+            var paramCol = headerIndex.get("Param: numberOfPersons");
+            println("scoreCol: " + scoreCol + ", paramCol: " + paramCol);
+
+            if (scoreCol == null || paramCol == null) return;
+
+            var y = Double.parseDouble(row[scoreCol].replace(',', '.'));
+            var x = Double.parseDouble(row[paramCol]);
+
             synchronized (series) {
                 series.add(x, y);
             }
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Fehler beim Parsen der CSV-Zeile: " + line, e);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Parse-Fehler: " + line, e);
         }
     }
+
 
     private static void sleep(long ms) {
         try {
@@ -294,6 +346,7 @@ static final class PlotPanel extends JPanel {
 
         if (errorMessage != null) {
             g2.setColor(Color.WHITE);
+            g2.setFont(new Font("SansSerif", Font.BOLD, 24));
             var fm = g2.getFontMetrics();
             var tw = fm.stringWidth(errorMessage);
             g2.drawString(errorMessage, (w - tw) / 2, h / 2);

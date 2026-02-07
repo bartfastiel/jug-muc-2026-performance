@@ -26,6 +26,7 @@ public class BenchmarkParallelRunner {
     public static final int MAX_PERSONS = 100_000;
     public static final int MIN_THREADS = 1;
     public static final int MAX_THREADS = 10;
+    public static final int ITERATIONS = 1;
 
     public static void main() throws Exception {
         var output = Path.of("results/measured.csv");
@@ -66,7 +67,7 @@ public class BenchmarkParallelRunner {
                     .param("numberOfPersons", String.valueOf(persons))
                     .forks(1)
                     .warmupIterations(0)
-                    .measurementIterations(3)
+                    .measurementIterations(ITERATIONS)
                     .resultFormat(ResultFormatType.CSV)
                     .result(tmp.toString())
                     .build();

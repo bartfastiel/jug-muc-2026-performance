@@ -49,25 +49,25 @@
   * Ähh, nein aber von den netten Kolleginnen und Kollegen möglicherweise eine Tüte Gummibärchen geschenkt
 
 * Und darum soll es heute gehen
-  * Warum Performance wichtig ist
-  * Wie man Performance misst und bewertet
-  * Vor allem aber auch, wie man sie ganz konkret verbessert
-    * in beliebigen Programmiersprachen wie Python
-    * in Visual Basic und Turbo Pascal
-    * und wir natürlich in unserer aller Lieblingssprache Java
-* wir nehmen uns heute ein bis zwei Stunden Zeit
-  * mit einigen Folien
-  * mit ganz viel Live-Coding
-  * und Euren Fragen und Anregungen zwischendrin
-    * meldet euch gerne jederzeit
+  * Teil 1 
+    * Angaben von Performance in der API-Dokumentation
+    * Vereinbarung von Performance für konkrete Projekte und Produkte
+    * Ein paar Ideen zur Performance
+    * Sinn und Unsinn von Performance-Optimierung
+  * Teil 2
+    * Hands-On Optimierung in Java
+    * Genauso übertragbar auf deine lieblings-Hobbysprache
+      * in Visual Basic, PHP oder Python
 
-* Es gibt so viele unterschiedliche Arbeitsfelder
-* Java ist so vielseitig
-> Umfrage "Wer von Euch coded im Bereich Online-Shop?"
-> Umfrage "Wer von Euch coded im Bereich Embedded?" (Mehrfachnennungen möglich)
-> Umfrage "Wer baut Software für Big-Data und KI?"
-> Umfrage "Hat jemand von Euch beruflich mit Blockchain zu tun?"
-> Umfrage "Oder schreibt Software im Bereich Grafik, CAD oder Spielentwicklung?"
+* Viele kenne ich vom Sehen | vom nebeneinander Sitzen
+* Um uns besser kennen zu lernen | um Bedeutung von Performance zu verstehen
+* Kurze Umfrage: In welchem Bereich arbeitet Ihr?
+> Umfrage "Wer von Euch coded im Bereich Webentwicklung?"
+> Umfrage "Wer von Euch schreibt HTTP Backends?"
+  * Mehrfachnennungen möglich
+> Umfrage "Wer von Euch baut Desktop-Anwendungen?"
+> Umfrage "Wer von Euch arbeitet mit Daten aus IoT, Telemetik?"
+> Umfrage "Wer von Euch schreibt Software, die in der Cloud läuft - z.B. AWS, Azure, Google Compute Engine?"
 
 * Es gibt Bereiche in der IT, in denen ist Performance das offensichtliche Kriterium
   * Beim Bit-Coin-Mining

@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BenchmarkParallelRunnerGraph" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="UNNAMED_CLASS_CONFIGURATION" value="true" />
+    <option name="MAIN_CLASS_NAME" value="BenchmarkParallelRunnerGraph" />
+    <module name="slow" />
+    <option name="VM_PARAMETERS" value="-Djmh.ignoreLock=true" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

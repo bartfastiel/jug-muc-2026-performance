@@ -72,8 +72,6 @@ public class BenchmarkParallelRunner {
                     .result(tmp.toString())
                     .build();
 
-            PersonalDataGenerator.generate(persons);
-
             new Runner(opt).run();
 
             String lastLine = null;

@@ -8,7 +8,6 @@ public class BenchmarkRunner {
 
     static void main() throws Exception {
         var persons = 500;
-        PersonalDataGenerator.generate(persons);
         new Runner(
                 new OptionsBuilder()
                         .include(BenchmarkConfig.class.getName().replace(".", "\\."))

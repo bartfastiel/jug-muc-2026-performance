@@ -15,7 +15,7 @@ class MainTest {
 
     @ParameterizedTest(name = "[{index}] {0}")
     @CsvSource(textBlock = """
-            twoSame, 1930-01-01|1930-01-01, Most common birthday is 01-01 with 2 persons celebrating it.
+            twoSame, 1930-01-01|1930-01-01, Most common birthday is --01-01 with 2 persons celebrating it.
             """)
     void run(String name, String datesPipeSeparated, String expected) throws IOException {
         var birthdaysAsDaysSince1Jan1930 = Stream.of(datesPipeSeparated.split("\\|"))
@@ -27,7 +27,7 @@ class MainTest {
         var tempFile = createTempFile("personal-data", ".zip");
         generate(birthdaysAsDaysSince1Jan1930, tempFile);
 
-        var result = solution.kilo.Main.run(tempFile);
+        var result = solution.alpha.Main.run(tempFile);
 
         assertEquals(expected, result);
     }

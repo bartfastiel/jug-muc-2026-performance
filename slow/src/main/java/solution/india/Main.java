@@ -33,8 +33,8 @@ public class Main {
                 " persons celebrating it.";
     }
 
-    private static ArrayList<String> parseZipFile(Path zipFile) throws IOException {
-        try (var input = new ZipInputStream(newInputStream(zipFile))) {
+    private static ArrayList<String> parseZipFile(Path zipPath) throws IOException {
+        try (var input = new ZipInputStream(newInputStream(zipPath))) {
             var entry = input.getNextEntry();
             if (entry == null) {
                 throw new IOException("No entries found in zip file " + "personal-data.zip");

@@ -38,8 +38,8 @@ public class Main {
                 " persons celebrating it.";
     }
 
-    private static Path extractZipFile(Path zipFile) throws IOException {
-        try (var input = new ZipInputStream(newInputStream(zipFile))) {
+    private static Path extractZipFile(Path zipPath) throws IOException {
+        try (var input = new ZipInputStream(newInputStream(zipPath))) {
             var entry = input.getNextEntry();
             if (entry == null) {
                 throw new IOException("No entries found in zip file " + "personal-data.zip");

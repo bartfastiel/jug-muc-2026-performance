@@ -34,7 +34,7 @@ public class PersonalDataGenerator {
 
     static final String BIRTH_DATE_HEADER = "Birth date";
 
-    static final int NUMBER_OF_PERSONS = 100_000_000;
+    static final int NUMBER_OF_PERSONS = 1_000;
 
     static void main() throws IOException {
         generate(NUMBER_OF_PERSONS);
